@@ -14,10 +14,10 @@ import org.hibernate.annotations.SQLRestriction;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@SQLDelete(sql = "UPDATE auctions SET deleted_at = CONVERT_TZ(NOW(), @@session.time_zone, '+09:00') WHERE id = ?")
+@SQLDelete(sql = "UPDATE point_history SET deleted_at = now() WHERE id = ?")
 @SQLRestriction(value = "deleted_at IS NULL")
 @Entity
-@Table(name = "recipes")
+@Table(name = "hash_tag")
 public class HashTag {
 
     @Id

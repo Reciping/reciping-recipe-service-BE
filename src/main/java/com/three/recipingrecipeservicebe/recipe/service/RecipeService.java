@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j(topic = "AuctionService")
+@Slf4j(topic = "RecipeService")
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 @Service

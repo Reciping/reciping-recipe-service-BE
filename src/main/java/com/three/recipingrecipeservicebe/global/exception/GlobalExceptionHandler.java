@@ -1,7 +1,7 @@
 package com.three.recipingrecipeservicebe.global.exception;
 
-import com.three.recipinguserservicebe.common.dto.ExceptionDto;
-import com.three.recipinguserservicebe.global.exception.custom.UserNotFoundException;
+import com.three.recipingrecipeservicebe.common.dto.ExceptionDto;
+import com.three.recipingrecipeservicebe.global.exception.custom.UserNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
