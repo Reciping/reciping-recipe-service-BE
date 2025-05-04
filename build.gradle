@@ -19,14 +19,13 @@ repositories {
 
 dependencies {
     // JUnit
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.4.5'
     // Elasticsearch
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
     // Mongodb
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    // Security
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     // Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
     // Lombok
@@ -46,9 +45,9 @@ dependencies {
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    //QueryDSL
+    // QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-    annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
     //S3
@@ -59,4 +58,12 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.junit.platform') {
+            details.useVersion '1.10.2'
+        }
+    }
 }
