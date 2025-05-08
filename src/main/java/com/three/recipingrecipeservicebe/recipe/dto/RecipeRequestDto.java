@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.List;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -48,6 +50,9 @@ public class RecipeRequestDto {
 
     @Size(max = 500)
     private String imageUrl;
+
+    @Size(max = 5)
+    private List<String> tags;
 
     private Boolean shouldRemoveImage;
 

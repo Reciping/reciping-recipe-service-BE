@@ -5,10 +5,11 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class RecipeDetailResponseDto {
 
     private Long id;
@@ -25,6 +26,7 @@ public class RecipeDetailResponseDto {
     private String keyName;
     private String filePath;
     private String imageUrl;
+    private List<String> tags;
 
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
