@@ -2,6 +2,10 @@ package com.three.recipingrecipeservicebe.recipe.service;
 
 import com.three.recipingrecipeservicebe.global.exception.custom.FileUploadException;
 import com.three.recipingrecipeservicebe.global.exception.custom.ForbiddenException;
+import com.three.recipingrecipeservicebe.hashtag.entity.HashTag;
+import com.three.recipingrecipeservicebe.hashtag.entity.RecipeTagDocument;
+import com.three.recipingrecipeservicebe.hashtag.repository.HashTagRepository;
+import com.three.recipingrecipeservicebe.hashtag.repository.RecipeTagRepository;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
@@ -28,12 +32,24 @@ public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final RecipeMapper recipeMapper;
     private final S3Uploader s3Uploader;
+    private final RecipeTagRepository recipeTagRepository;
+    private final HashTagRepository hashTagRepository;
 
     @Transactional(readOnly = true)
     public RecipeDetailResponseDto getRecipeById(Long id) {
+        // 레시피 상세 정보
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("레시피를 찾을 수 없습니다."));
-        return recipeMapper.toDto(recipe);
+
+        // TAG 가져오기
+        List<String> tags = recipeTagRepository.findByRecipeId(id)
+                .map(RecipeTagDocument::getTags)
+                .orElse(List.of()); // 없으면 빈 리스트
+
+        RecipeDetailResponseDto baseDto = recipeMapper.toDto(recipe);
+
+        // 레시피 상세 정보와 태그 결합
+        return baseDto.toBuilder().tags(tags).build();
     }
 
     @Transactional(readOnly = true)
@@ -45,15 +61,20 @@ public class RecipeService {
 
     @Transactional
     public RecipeCreatedResponseDto createRecipe(RecipeRequestDto dto, Long userId, MultipartFile file) throws FileUploadException {
+        // S3 이미지 처리
         String imageUrl = processImageIfExists(file);
 
         dto = dto.toBuilder()
                 .imageUrl(imageUrl)
                 .build();
 
+        // DB 저장
         Recipe recipe = Recipe.createFromDto(dto, userId);
-
         Recipe savedRecipe = recipeRepository.save(recipe);
+
+        // TAGS 몽고디비 저장
+        saveTags(dto, savedRecipe);
+
         return recipeMapper.toCreatedDto(savedRecipe);
     }
 
@@ -66,9 +87,28 @@ public class RecipeService {
             throw new ForbiddenException("수정 권한이 없습니다.");
         }
 
+        // S3 이미지 수정
         dto = processImageUpdate(recipe, dto, file);
 
+        // TAGS 몽고디비 저장
+        saveTags(dto, recipe);
+
         recipe.updateFromDto(dto);
+    }
+
+    private void saveTags(RecipeRequestDto dto, Recipe recipe) {
+        List<String> tags = dto.getTags();
+        if (tags != null && !tags.isEmpty()) {
+            recipeTagRepository.save(
+                    RecipeTagDocument.builder().recipeId(recipe.getId()).tags(tags).build()
+            );
+
+            for (String tag : tags) {
+                hashTagRepository.findByName(tag)
+                        .orElseGet(() -> hashTagRepository.save(
+                                HashTag.builder().name(tag).build()));
+            }
+        }
     }
 
     @Transactional

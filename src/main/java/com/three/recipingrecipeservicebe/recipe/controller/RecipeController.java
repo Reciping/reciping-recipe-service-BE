@@ -22,15 +22,15 @@ public class RecipeController {
 
     private final RecipeService recipeService;
 
-    @GetMapping
-    public ResponseEntity<List<RecipeListResponseDto>> getRecipeListByPage(Pageable pageable) {
-        List<RecipeListResponseDto> response = recipeService.getRecipeListByPage(pageable);
-        return ResponseEntity.ok(response);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<RecipeDetailResponseDto> getRecipe(@PathVariable Long id) {
         RecipeDetailResponseDto response = recipeService.getRecipeById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<RecipeListResponseDto>> getRecipeListByPage(Pageable pageable) {
+        List<RecipeListResponseDto> response = recipeService.getRecipeListByPage(pageable);
         return ResponseEntity.ok(response);
     }
 
