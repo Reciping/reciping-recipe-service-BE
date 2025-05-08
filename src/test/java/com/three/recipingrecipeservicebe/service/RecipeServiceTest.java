@@ -1,7 +1,10 @@
 package com.three.recipingrecipeservicebe.service;
 
 import com.three.recipingrecipeservicebe.global.exception.custom.ForbiddenException;
+import com.three.recipingrecipeservicebe.hashtag.entity.RecipeTagDocument;
+import com.three.recipingrecipeservicebe.hashtag.repository.RecipeTagRepository;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
 import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
 import com.three.recipingrecipeservicebe.recipe.mapper.RecipeRepository;
@@ -13,6 +16,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,6 +32,9 @@ class RecipeServiceTest {
 
     @Autowired
     private RecipeRepository recipeRepository;
+
+    @Autowired
+    private RecipeTagRepository recipeTagRepository;
 
     @Test
     @DisplayName("CREATE 이미지가 있는 레시피 생성")
@@ -214,5 +222,28 @@ class RecipeServiceTest {
         assertThatThrownBy(() ->
                 recipeService.updateRecipe(saved.getId(), dto, 2L, null)
         ).isInstanceOf(ForbiddenException.class);
+    }
+
+    @Test
+    @DisplayName("CREATE 레시피 ID로 상세 정보, 태그 조회")
+    void getRecipeById_withTags() {
+        // given
+        Recipe savedRecipe = recipeRepository.save(Recipe.builder()
+                .title("김치볶음밥")
+                .content("김치와 밥을 볶는다.")
+                .userId(1L)
+                .build());
+
+        recipeTagRepository.save(RecipeTagDocument.builder()
+                .recipeId(savedRecipe.getId())
+                .tags(List.of("김치", "볶음"))
+                .build());
+
+        // when
+        RecipeDetailResponseDto dto = recipeService.getRecipeById(savedRecipe.getId());
+
+        // then
+        assertThat(dto.getTitle()).isEqualTo("김치볶음밥");
+        assertThat(dto.getTags()).containsExactlyInAnyOrder("김치", "볶음");
     }
 }
