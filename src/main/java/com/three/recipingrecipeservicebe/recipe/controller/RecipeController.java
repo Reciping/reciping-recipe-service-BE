@@ -4,7 +4,6 @@ import com.three.recipingrecipeservicebe.common.dto.Response;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +20,6 @@ import java.util.List;
 public class RecipeController {
 
     private final RecipeService recipeService;
-
-    @GetMapping("/{id}")
-    public ResponseEntity<RecipeDetailResponseDto> getRecipe(@PathVariable Long id) {
-        RecipeDetailResponseDto response = recipeService.getRecipeById(id);
-        return ResponseEntity.ok(response);
-    }
 
     @GetMapping
     public ResponseEntity<List<RecipeListResponseDto>> getRecipeListByPage(Pageable pageable) {
