@@ -1,27 +1,23 @@
 package com.three.recipingrecipeservicebe.hashtag.entity;
 
-import jakarta.persistence.Id;
 import lombok.*;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.List;
 
-@Document(collection = "hashtags")
+@Document(collection = "recipe_tags")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HashTag {
+public class RecipeTagDocument {
 
     @Id
-    private String id;
+    private Long recipeId;
 
-    @Indexed(unique = true)
-    private String name;
-
-    private Long count;
+    private List<String> tags;
 
 }
