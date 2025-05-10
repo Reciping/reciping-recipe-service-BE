@@ -1,12 +1,12 @@
 package com.three.recipingrecipeservicebe.service;
 
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
-import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
 import com.three.recipingrecipeservicebe.recipe.entity.RecipeMapper;
-import com.three.recipingrecipeservicebe.recipe.mapper.RecipeRepository;
+import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import com.three.recipingrecipeservicebe.recipeDetailPage.dto.CommentResponseDto;
 import com.three.recipingrecipeservicebe.recipeDetailPage.dto.RecipeDetailAggregateDto;
 import com.three.recipingrecipeservicebe.recipeDetailPage.feign.CommentFeignClient;
+import com.three.recipingrecipeservicebe.recipeDetailPage.feign.LikeFeignClient;
 import com.three.recipingrecipeservicebe.recipeDetailPage.service.RecipeDetailFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,13 +26,17 @@ import static org.mockito.BDDMockito.given;
 class RecipeDetailFacadeTest {
 
     @Mock
-    private RecipeRepository recipeRepository;
+    private RecipeService recipeService;
 
     @Mock
     private CommentFeignClient commentFeignClient;
 
     @Mock
     private RecipeMapper recipeMapper;
+
+    @Mock
+    private LikeFeignClient likeFeignClient;
+
 
     @InjectMocks
     private RecipeDetailFacade recipeDetailFacade;
@@ -42,13 +46,7 @@ class RecipeDetailFacadeTest {
     void getRecipeWithComments() {
         // given
         Long recipeId = 1L;
-
-        Recipe recipe = Recipe.builder()
-                .id(recipeId)
-                .title("된장찌개")
-                .content("재료 넣고 끓이기")
-                .userId(10L)
-                .build();
+        Long userId = 2L;
 
         RecipeDetailResponseDto recipeDto = RecipeDetailResponseDto.builder()
                 .id(recipeId)
@@ -62,16 +60,16 @@ class RecipeDetailFacadeTest {
                 new CommentResponseDto("2", recipeId, 12L, "오늘 해먹었어요", LocalDateTime.now(), LocalDateTime.now())
         );
 
-        given(recipeMapper.toDto(recipe)).willReturn(recipeDto);
-        given(recipeRepository.findById(recipeId)).willReturn(Optional.of(recipe));
+        given(recipeService.getRecipeById(userId, recipeId)).willReturn(recipeDto);
         given(commentFeignClient.getCommentsByRecipeId(recipeId)).willReturn(mockComments);
+        given(likeFeignClient.getLikeCount(recipeId)).willReturn(5L); // ← 추가됨
 
         // when
-        RecipeDetailAggregateDto result = recipeDetailFacade.getRecipeDetail(recipeId);
-
+        RecipeDetailAggregateDto result = recipeDetailFacade.getRecipeDetail(userId, recipeId);
 
         // then
         assertThat(result.getRecipe().getTitle()).isEqualTo("된장찌개");
+        assertThat(result.getRecipe().getLikeCount()).isEqualTo(5L); // ← 추가 확인
         assertThat(result.getComments()).hasSize(2);
         assertThat(result.getComments().get(0).getContent()).isEqualTo("맛있겠어요");
     }

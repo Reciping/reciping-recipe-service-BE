@@ -26,7 +26,9 @@ public class RecipeDetailResponseDto {
     private String keyName;
     private String filePath;
     private String imageUrl;
+    private Long likeCount;
     private List<String> tags;
+    private boolean isBookmarked;
 
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
