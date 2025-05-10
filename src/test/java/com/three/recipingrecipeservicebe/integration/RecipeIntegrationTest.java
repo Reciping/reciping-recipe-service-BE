@@ -49,6 +49,7 @@ public class RecipeIntegrationTest {
     void createRecipe() throws Exception {
         // given
         RecipeRequestDto dto = RecipeRequestDto.builder()
+                .userId(testUserId)
                 .title("김치볶음밥")
                 .content("1. 김치 썰기\n2. 밥 볶기")
                 .build();
@@ -89,6 +90,7 @@ public class RecipeIntegrationTest {
         recipeRepository.save(recipe);
 
         RecipeRequestDto requestDto = RecipeRequestDto.builder()
+                .userId(testUserId)
                 .title("참치김치볶음밥")
                 .content("1. 참치와 김치 볶기\n2. 밥 넣기")
                 .build();
@@ -158,6 +160,7 @@ public class RecipeIntegrationTest {
     void createRecipe_withTags() throws Exception {
         // given
         RecipeRequestDto dto = RecipeRequestDto.builder()
+                .userId(testUserId)
                 .title("된장찌개")
                 .content("된장에 채소 넣기")
                 .tags(List.of("한식", "국물")) // ✅ 태그 포함
@@ -200,6 +203,7 @@ public class RecipeIntegrationTest {
     void updateRecipe_overwriteTags() throws Exception {
         // given: 먼저 레시피 저장
         RecipeRequestDto dto1 = RecipeRequestDto.builder()
+                .userId(testUserId)
                 .title("된장찌개")
                 .content("된장에 채소 넣기")
                 .tags(List.of("한식", "국물")) // 초기 태그
@@ -220,7 +224,6 @@ public class RecipeIntegrationTest {
 
         Long recipeId = objectMapper.readTree(responseBody).get("data").get("id").asLong();
 
-
         // then: 초기 태그 저장 확인
         RecipeTagDocument first = recipeTagRepository.findById(recipeId)
                 .orElseThrow();
@@ -228,6 +231,7 @@ public class RecipeIntegrationTest {
 
         // when: 다른 태그로 덮어쓰기
         RecipeRequestDto dto2 = RecipeRequestDto.builder()
+                .userId(testUserId)
                 .title("된장찌개 수정")
                 .content("변경된 설명")
                 .tags(List.of("찌개", "매운맛")) // 새 태그로 덮어쓰기

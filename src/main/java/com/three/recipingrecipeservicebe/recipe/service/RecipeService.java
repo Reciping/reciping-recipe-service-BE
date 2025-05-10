@@ -1,5 +1,6 @@
 package com.three.recipingrecipeservicebe.recipe.service;
 
+import com.three.recipingrecipeservicebe.bookmark.service.RecipeBookmarkService;
 import com.three.recipingrecipeservicebe.global.exception.custom.FileUploadException;
 import com.three.recipingrecipeservicebe.global.exception.custom.ForbiddenException;
 import com.three.recipingrecipeservicebe.hashtag.entity.HashTag;
@@ -32,11 +33,13 @@ public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final RecipeMapper recipeMapper;
     private final S3Uploader s3Uploader;
+    // TODO [강산하] [2025-05-09]: 리포지토리는 하나만 의존성 주입, 나머지는 역할 분리를 위해 서비스로 변환 필요
     private final RecipeTagRepository recipeTagRepository;
     private final HashTagRepository hashTagRepository;
+    private final RecipeBookmarkService recipeBookmarkService;
 
     @Transactional(readOnly = true)
-    public RecipeDetailResponseDto getRecipeById(Long id) {
+    public RecipeDetailResponseDto getRecipeById(Long id, Long userId) {
         // 레시피 상세 정보
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("레시피를 찾을 수 없습니다."));
@@ -46,10 +49,13 @@ public class RecipeService {
                 .map(RecipeTagDocument::getTags)
                 .orElse(List.of()); // 없으면 빈 리스트
 
+        // 즐겨찾기 가져오기
+        boolean isBookmarked = recipeBookmarkService.isBookmarked(userId, id);
+
         RecipeDetailResponseDto baseDto = recipeMapper.toDto(recipe);
 
         // 레시피 상세 정보와 태그 결합
-        return baseDto.toBuilder().tags(tags).build();
+        return baseDto.toBuilder().isBookmarked(isBookmarked).tags(tags).build();
     }
 
     @Transactional(readOnly = true)
@@ -96,6 +102,18 @@ public class RecipeService {
         recipe.updateFromDto(dto);
     }
 
+    @Transactional
+    public void deleteRecipe(Long id, Long userId) {
+        Recipe recipe = recipeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("레시피를 찾을 수 없습니다."));
+
+        if (!recipe.getUserId().equals(userId)) {
+            throw new ForbiddenException("수정 권한이 없습니다.");
+        }
+
+        recipeRepository.delete(recipe);
+    }
+
     private void saveTags(RecipeRequestDto dto, Recipe recipe) {
         List<String> tags = dto.getTags();
         if (tags != null && !tags.isEmpty()) {
@@ -109,18 +127,6 @@ public class RecipeService {
                                 HashTag.builder().name(tag).build()));
             }
         }
-    }
-
-    @Transactional
-    public void deleteRecipe(Long id, Long userId) {
-        Recipe recipe = recipeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("레시피를 찾을 수 없습니다."));
-
-        if (!recipe.getUserId().equals(userId)) {
-            throw new ForbiddenException("수정 권한이 없습니다.");
-        }
-
-        recipeRepository.delete(recipe);
     }
 
     private String processImageIfExists(MultipartFile file) {
@@ -158,6 +164,5 @@ public class RecipeService {
     }
 
     // TODO [강산하] [2025-05-05]: 엘라스틱서치 일치율 검색 결과 ID 리스트로 전달받아, 해당 ID 기준으로 쿼리 호출하도록 구현
-    // TODO [강산하] [2025-05-05] : recipeId 기준으로 MongoDB 로부터 댓글 리스트 조회 후 반환
 
 }

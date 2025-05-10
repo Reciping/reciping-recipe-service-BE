@@ -1,9 +1,6 @@
 package com.three.recipingrecipeservicebe.recipe.dto;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.util.List;
@@ -13,6 +10,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class RecipeRequestDto {
+
+    @NotNull(message = "유저 ID는 필수입니다.")
+    private Long userId;
 
     @NotBlank(message = "제목은 필수입니다.")
     private String title;
