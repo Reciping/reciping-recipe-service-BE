@@ -39,7 +39,7 @@ public class BookmarkIntegrationTest {
     }
 
     @Test
-    @DisplayName("사용자의 즐겨찾기 목록을 페이징 조회")
+    @DisplayName("READ 사용자의 즐겨찾기 목록을 페이징 조회")
     void getBookmarksByUserId() throws Exception {
         Long userId = 1L;
 
