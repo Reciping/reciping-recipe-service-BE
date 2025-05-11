@@ -4,10 +4,7 @@ import com.three.recipingrecipeservicebe.recipeDetailPage.dto.RecipeDetailAggreg
 import com.three.recipingrecipeservicebe.recipeDetailPage.service.RecipeDetailFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/recipe")
@@ -18,9 +15,10 @@ public class RecipeDetailController {
 
     @GetMapping("/{recipeId}")
     public ResponseEntity<RecipeDetailAggregateDto> getRecipeDetail(
-            @PathVariable Long recipeId
+            @PathVariable Long recipeId,
+            @RequestHeader("X-USER-ID") Long userId
     ) {
-        RecipeDetailAggregateDto response = recipeDetailFacade.getRecipeDetail(recipeId);
+        RecipeDetailAggregateDto response = recipeDetailFacade.getRecipeDetail(userId, recipeId);
         return ResponseEntity.ok(response);
     }
 }

@@ -228,6 +228,8 @@ class RecipeServiceTest {
     @DisplayName("CREATE 레시피 ID로 상세 정보, 태그 조회")
     void getRecipeById_withTags() {
         // given
+        Long userId = 1L;
+
         Recipe savedRecipe = recipeRepository.save(Recipe.builder()
                 .title("김치볶음밥")
                 .content("김치와 밥을 볶는다.")
@@ -240,7 +242,7 @@ class RecipeServiceTest {
                 .build());
 
         // when
-        RecipeDetailResponseDto dto = recipeService.getRecipeById(savedRecipe.getId());
+        RecipeDetailResponseDto dto = recipeService.getRecipeById(savedRecipe.getId(), userId);
 
         // then
         assertThat(dto.getTitle()).isEqualTo("김치볶음밥");
