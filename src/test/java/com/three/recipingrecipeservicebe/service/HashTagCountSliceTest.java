@@ -4,7 +4,7 @@ import com.three.recipingrecipeservicebe.hashtag.entity.HashTag;
 import com.three.recipingrecipeservicebe.hashtag.entity.RecipeTagDocument;
 import com.three.recipingrecipeservicebe.hashtag.repository.HashTagRepository;
 import com.three.recipingrecipeservicebe.hashtag.repository.RecipeTagRepository;
-import com.three.recipingrecipeservicebe.hashtag.service.HashTagService;
+import com.three.recipingrecipeservicebe.hashtag.service.HashTagAggregateService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,14 +18,14 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataMongoTest
-@Import(HashTagService.class) // Service 로딩 명시
+@Import(HashTagAggregateService.class)
 @TestPropertySource(properties = {
         "spring.data.mongodb.uri=mongodb://localhost:27017/recipe_hashtag"
 })
 class HashTagCountSliceTest {
 
     @Autowired
-    private HashTagService hashTagService;
+    private HashTagAggregateService hashTagAggregateService;
 
     @Autowired
     private RecipeTagRepository recipeTagRepository;
@@ -48,7 +48,7 @@ class HashTagCountSliceTest {
         recipeTagRepository.save(new RecipeTagDocument(3L, List.of("매운")));
 
         // when
-        hashTagService.updateTagCounts();
+        hashTagAggregateService.updateTagCounts();
 
         // then
         List<HashTag> all = hashTagRepository.findAll();
