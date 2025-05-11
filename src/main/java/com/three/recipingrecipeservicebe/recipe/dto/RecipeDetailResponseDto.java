@@ -29,6 +29,7 @@ public class RecipeDetailResponseDto {
     private Long likeCount;
     private List<String> tags;
     private boolean isBookmarked;
+    private boolean isLiked;
 
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
