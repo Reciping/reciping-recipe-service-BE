@@ -1,9 +1,6 @@
 package com.three.recipingrecipeservicebe.recipe.entity;
 
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.*;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring",
@@ -20,4 +17,7 @@ public interface RecipeMapper {
     RecipeListResponseDto toListDto(Recipe recipe);
 
     RecipeCreatedResponseDto toCreatedDto(Recipe recipe);
+
+    @Mapping(target = "likeCount", constant = "0")
+    MyRecipeSummaryResponseDto toMyRecipeSummaryDto(Recipe recipe);
 }
