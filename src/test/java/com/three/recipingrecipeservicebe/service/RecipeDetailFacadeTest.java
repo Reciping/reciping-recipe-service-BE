@@ -4,7 +4,7 @@ import com.three.recipingrecipeservicebe.bookmark.service.RecipeBookmarkService;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import com.three.recipingrecipeservicebe.recipeDetailPage.dto.CommentResponseDto;
-import com.three.recipingrecipeservicebe.recipeDetailPage.dto.LikeStatusResponseDto;
+import com.three.recipingrecipeservicebe.recipeDetailPage.dto.RecipeLikeStatusResponseDto;
 import com.three.recipingrecipeservicebe.recipeDetailPage.dto.RecipeDetailAggregateDto;
 import com.three.recipingrecipeservicebe.recipeDetailPage.feign.CommentFeignClient;
 import com.three.recipingrecipeservicebe.recipeDetailPage.feign.LikeFeignClient;
@@ -18,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -64,7 +63,7 @@ class RecipeDetailFacadeTest {
         given(recipeService.getRecipeById(userId, recipeId)).willReturn(recipeDto);
         given(commentFeignClient.getCommentsByRecipeId(recipeId)).willReturn(mockComments);
         given(likeFeignClient.getRecipeLikeStatus(recipeId, userId))
-                .willReturn(LikeStatusResponseDto.builder()
+                .willReturn(RecipeLikeStatusResponseDto.builder()
                         .recipeId(recipeId)
                         .likeCount(5L)
                         .isLiked(true)

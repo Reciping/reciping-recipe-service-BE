@@ -3,9 +3,9 @@ package com.three.recipingrecipeservicebe.integration;
 import com.three.recipingrecipeservicebe.bookmark.entity.RecipeBookmarkDocument;
 import com.three.recipingrecipeservicebe.bookmark.repository.RecipeBookmarkRepository;
 import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
-import com.three.recipingrecipeservicebe.recipe.mapper.RecipeRepository;
+import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
 import com.three.recipingrecipeservicebe.recipeDetailPage.dto.CommentResponseDto;
-import com.three.recipingrecipeservicebe.recipeDetailPage.dto.LikeStatusResponseDto;
+import com.three.recipingrecipeservicebe.recipeDetailPage.dto.RecipeLikeStatusResponseDto;
 import com.three.recipingrecipeservicebe.recipeDetailPage.feign.CommentFeignClient;
 import com.three.recipingrecipeservicebe.recipeDetailPage.feign.LikeFeignClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +77,7 @@ public class RecipeDetailIntegrationTest {
 
         // Stub: 좋아요 API 응답
         given(likeFeignClient.getRecipeLikeStatus(recipeId, userId))
-                .willReturn(LikeStatusResponseDto.builder()
+                .willReturn(RecipeLikeStatusResponseDto.builder()
                         .recipeId(recipeId)
                         .likeCount(7L)
                         .isLiked(true)
