@@ -1,6 +1,7 @@
 package com.three.recipingrecipeservicebe.recipe.controller;
 
 import com.three.recipingrecipeservicebe.common.dto.Response;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeCountResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
@@ -27,6 +28,13 @@ public class RecipeController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/count")
+    public ResponseEntity<Response<RecipeCountResponseDto>> getMyRecipeCount(
+            @RequestHeader("X-USER-ID") Long userId) {
+        RecipeCountResponseDto response = recipeService.getMyRecipeCount(userId);
+        return ResponseEntity.ok(Response.ok(response));
+    }
+
     @PostMapping
     public ResponseEntity<Response<RecipeCreatedResponseDto>> createRecipe(
             @RequestPart("requestDto") @Valid RecipeRequestDto requestDto,
@@ -37,6 +45,8 @@ public class RecipeController {
         RecipeCreatedResponseDto response = recipeService.createRecipe(requestDto, userId, file);
         return ResponseEntity.ok(Response.ok(response));
     }
+
+    
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateRecipe(

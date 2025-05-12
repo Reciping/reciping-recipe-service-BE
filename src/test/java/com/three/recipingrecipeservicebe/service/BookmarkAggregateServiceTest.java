@@ -36,7 +36,7 @@ class BookmarkAggregateServiceTest {
     }
 
     @Test
-    @DisplayName("레시피 즐겨찾기 수를 올바르게 집계하여 bookmark_stats에 저장한다")
+    @DisplayName("CREATE 레시피 즐겨찾기 수를 올바르게 집계하여 bookmark_stats에 저장한다")
     void aggregateRecipeBookmarkCount_savesCorrectCounts() {
         // given: recipe_bookmarks 컬렉션에 다양한 레시피 ID로 즐겨찾기 문서 삽입
         mongoTemplate.insertAll(List.of(

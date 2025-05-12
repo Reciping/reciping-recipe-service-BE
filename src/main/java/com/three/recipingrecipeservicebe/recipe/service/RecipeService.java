@@ -1,20 +1,20 @@
 package com.three.recipingrecipeservicebe.recipe.service;
 
+import com.three.recipingrecipeservicebe.bookmark.dto.BookmarkResponseDto;
 import com.three.recipingrecipeservicebe.bookmark.service.RecipeBookmarkService;
 import com.three.recipingrecipeservicebe.global.exception.custom.FileUploadException;
 import com.three.recipingrecipeservicebe.global.exception.custom.ForbiddenException;
 import com.three.recipingrecipeservicebe.hashtag.service.HashTagService;
 import com.three.recipingrecipeservicebe.hashtag.service.RecipeTagService;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.*;
 import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
 import com.three.recipingrecipeservicebe.recipe.entity.RecipeMapper;
 import com.three.recipingrecipeservicebe.recipe.infrastructure.s3.S3Uploader;
-import com.three.recipingrecipeservicebe.recipe.mapper.RecipeRepository;
+import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j(topic = "RecipeService")
 @RequiredArgsConstructor
@@ -53,6 +57,11 @@ public class RecipeService {
 
         // 레시피 상세 정보와 태그 결합
         return baseDto.toBuilder().isBookmarked(isBookmarked).tags(tags).build();
+    }
+
+    public RecipeCountResponseDto getMyRecipeCount(Long userId) {
+        Long count = recipeRepository.countByUserIdAndIsDeletedFalse(userId);
+        return new RecipeCountResponseDto(userId, count);
     }
 
     @Transactional(readOnly = true)
@@ -109,6 +118,42 @@ public class RecipeService {
         }
 
         recipeRepository.delete(recipe);
+    }
+
+    public Page<MyRecipeSummaryResponseDto> getMyRecipes(Long userId, Pageable pageable) {
+        Page<Recipe> recipePage = recipeRepository.findByUserIdAndIsDeletedFalse(userId, pageable);
+        return recipePage.map(recipeMapper::toMyRecipeSummaryDto);
+    }
+
+    public Page<MyRecipeSummaryResponseDto> getBookmarkedRecipeList(Long userId, Pageable pageable) {
+        // 1. 북마크 도큐먼트 조회
+        Page<BookmarkResponseDto> bookmarkPage = recipeBookmarkService.getBookmarksByUserId(userId, pageable);
+
+        // 2. 북마크된 recipeId 추출 (순서 유지됨)
+        List<Long> recipeIds = bookmarkPage.getContent().stream()
+                .map(BookmarkResponseDto::getRecipeId)
+                .toList();
+
+        // 3. RDB 에서 레시피 조회 (순서 보장 안됨)
+        List<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds);
+
+        // 4. Map 으로 매핑 (id → Recipe)
+        Map<Long, Recipe> recipeMap = recipes.stream()
+                .collect(Collectors.toMap(Recipe::getId, Function.identity()));
+
+        // 5. 북마크 순서대로 정렬
+        List<Recipe> orderedRecipes = recipeIds.stream()
+                .map(recipeMap::get)            // 순서대로 매핑
+                .filter(Objects::nonNull)       // 혹시 누락된 ID 방지
+                .toList();
+
+        // 6. DTO 매핑
+        List<MyRecipeSummaryResponseDto> mapped = orderedRecipes.stream()
+                .map(recipeMapper::toMyRecipeSummaryDto)
+                .toList();
+
+        // 7. 페이징 복원
+        return new PageImpl<>(mapped, pageable, bookmarkPage.getTotalElements());
     }
 
     private void saveTags(RecipeRequestDto dto, Recipe recipe) {

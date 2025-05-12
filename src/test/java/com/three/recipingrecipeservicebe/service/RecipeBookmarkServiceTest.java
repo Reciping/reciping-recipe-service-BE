@@ -37,7 +37,7 @@ public class RecipeBookmarkServiceTest {
     }
 
     @Test
-    @DisplayName("즐겨찾기가 30개 초과되면 예외를 던진다")
+    @DisplayName("EXCEPTION 즐겨찾기가 30개 초과되면 예외를 던진다")
     void toggleBookmark_exceedLimit_shouldThrowException() {
         Long userId = 1L;
 
