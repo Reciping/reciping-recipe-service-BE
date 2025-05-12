@@ -8,15 +8,14 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-@Builder
-public class RecipeListResponseDto {
+@Builder(toBuilder = true)
+public class MyRecipeSummaryResponseDto {
 
     private Long id;
-    private Long userId;
     private String title;
     private String imageUrl;
-    private String difficulty;
-    private Integer cookingTime;
+    private int likeCount;
+    private boolean isLiked;
 
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
