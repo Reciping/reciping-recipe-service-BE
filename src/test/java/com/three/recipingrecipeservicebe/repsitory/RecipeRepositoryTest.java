@@ -2,7 +2,7 @@ package com.three.recipingrecipeservicebe.repsitory;
 
 import com.three.recipingrecipeservicebe.global.config.JpaConfig;
 import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
-import com.three.recipingrecipeservicebe.recipe.mapper.RecipeRepository;
+import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

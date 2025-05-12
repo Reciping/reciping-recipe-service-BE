@@ -7,7 +7,7 @@ import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
 import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
-import com.three.recipingrecipeservicebe.recipe.mapper.RecipeRepository;
+import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
