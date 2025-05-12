@@ -1,5 +1,9 @@
 package com.three.recipingrecipeservicebe.recipe.dto;
 
+import com.three.recipingrecipeservicebe.recipe.entity.DishType;
+import com.three.recipingrecipeservicebe.recipe.entity.IngredientType;
+import com.three.recipingrecipeservicebe.recipe.entity.MethodType;
+import com.three.recipingrecipeservicebe.recipe.entity.SituationType;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -27,17 +31,10 @@ public class RecipeRequestDto {
     @Size(max = 10, message = "코드값은 10자 이하여야 합니다.")
     private String difficulty;
 
-    @Size(max = 50)
-    private String category;
-
-    @Size(max = 50)
-    private String occasion;
-
-    @Size(max = 50)
-    private String method;
-
-    @Size(max = 50)
-    private String ingredient;
+    private DishType dishType;
+    private SituationType situationType;
+    private MethodType methodType;
+    private IngredientType ingredientType;
 
     @Size(max = 100)
     private String objectName;

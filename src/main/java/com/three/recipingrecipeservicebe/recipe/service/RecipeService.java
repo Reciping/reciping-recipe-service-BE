@@ -7,8 +7,7 @@ import com.three.recipingrecipeservicebe.global.exception.custom.ForbiddenExcept
 import com.three.recipingrecipeservicebe.hashtag.service.HashTagService;
 import com.three.recipingrecipeservicebe.hashtag.service.RecipeTagService;
 import com.three.recipingrecipeservicebe.recipe.dto.*;
-import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
-import com.three.recipingrecipeservicebe.recipe.entity.RecipeMapper;
+import com.three.recipingrecipeservicebe.recipe.entity.*;
 import com.three.recipingrecipeservicebe.recipe.infrastructure.s3.S3Uploader;
 import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -100,7 +97,7 @@ public class RecipeService {
         }
 
         // S3 이미지 수정
-        dto = processImageUpdate(recipe, dto, file);
+        dto = processImageUpdate(dto, file);
 
         // TAGS 몽고디비 저장
         saveTags(dto, recipe);
@@ -156,6 +153,32 @@ public class RecipeService {
         return new PageImpl<>(mapped, pageable, bookmarkPage.getTotalElements());
     }
 
+    public Map<String, List<Map<String, String>>> getAllCategoryOptions() {
+        Map<String, List<Map<String, String>>> response = new LinkedHashMap<>();
+
+        response.put("dish", toOptionList(DishType.values()));
+        response.put("situation", toOptionList(SituationType.values()));
+        response.put("ingredient", toOptionList(IngredientType.values()));
+        response.put("method", toOptionList(MethodType.values()));
+
+        return response;
+    }
+
+    public List<RecipeListResponseDto> searchRecipes(RecipeSearchConditionRequestDto cond, Pageable pageable) {
+        return recipeRepository.searchByCondition(cond, pageable).stream()
+                .map(recipeMapper::toListDto)
+                .toList();
+    }
+
+    private <E extends Enum<E> & EnumWithLabel> List<Map<String, String>> toOptionList(E[] enums) {
+        return Arrays.stream(enums)
+                .map(e -> Map.of(
+                        "value", e.name(),
+                        "label", e.getLabel()
+                ))
+                .toList();
+    }
+
     private void saveTags(RecipeRequestDto dto, Recipe recipe) {
         List<String> tags = dto.getTags();
         if (tags != null && !tags.isEmpty()) {
@@ -174,7 +197,7 @@ public class RecipeService {
         }
     }
 
-    private RecipeRequestDto processImageUpdate(Recipe recipe, RecipeRequestDto dto, MultipartFile file) {
+    private RecipeRequestDto processImageUpdate(RecipeRequestDto dto, MultipartFile file) {
         String imageUrl = dto.getImageUrl();
 
         // 이미지 삭제 요청

@@ -1,10 +1,7 @@
 package com.three.recipingrecipeservicebe.recipe.controller;
 
 import com.three.recipingrecipeservicebe.common.dto.Response;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeCountResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
+import com.three.recipingrecipeservicebe.recipe.dto.*;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/recipes")
@@ -46,7 +44,14 @@ public class RecipeController {
         return ResponseEntity.ok(Response.ok(response));
     }
 
-    
+    @PostMapping("/search")
+    public ResponseEntity<List<RecipeListResponseDto>> searchRecipes(
+            @RequestBody RecipeSearchConditionRequestDto condition,
+            Pageable pageable
+    ) {
+        List<RecipeListResponseDto> results = recipeService.searchRecipes(condition, pageable);
+        return ResponseEntity.ok(results);
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateRecipe(
@@ -68,5 +73,10 @@ public class RecipeController {
     ) {
         recipeService.deleteRecipe(id, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/category-options")
+    public ResponseEntity<Map<String, List<Map<String, String>>>> getAllCategoryOptions() {
+        return ResponseEntity.ok(recipeService.getAllCategoryOptions());
     }
 }
