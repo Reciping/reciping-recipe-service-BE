@@ -1,6 +1,7 @@
 package com.three.recipingrecipeservicebe.recipeDetailPage.controller;
 
-import com.three.recipingrecipeservicebe.recipe.dto.MyRecipeListResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeSearchConditionRequestDto;
 import com.three.recipingrecipeservicebe.recipeDetailPage.dto.RecipeDetailAggregateDto;
 import com.three.recipingrecipeservicebe.recipeDetailPage.service.RecipeDetailFacade;
 import lombok.RequiredArgsConstructor;
@@ -25,20 +26,29 @@ public class RecipeDetailPageController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<MyRecipeListResponseDto> getMyRecipesWithLikes(
+    public ResponseEntity<RecipeListResponseDto> getMyRecipesWithLikes(
             @RequestHeader("X-USER-ID") Long userId,
             Pageable pageable
     ) {
-        MyRecipeListResponseDto response = recipeDetailFacade.getMyRecipesWithLikes(userId, pageable);
+        RecipeListResponseDto response = recipeDetailFacade.getMyRecipesWithLikes(userId, pageable);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/bookmarked")
-    public ResponseEntity<MyRecipeListResponseDto> getBookmarkedRecipesWithLikes(
+    public ResponseEntity<RecipeListResponseDto> getBookmarkedRecipesWithLikes(
             @RequestHeader("X-USER-ID") Long userId,
             Pageable pageable
     ) {
-        MyRecipeListResponseDto response = recipeDetailFacade.getBookmarkedRecipesWithLikes(userId, pageable);
+        RecipeListResponseDto response = recipeDetailFacade.getBookmarkedRecipesWithLikes(userId, pageable);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<RecipeListResponseDto> searchRecipes(
+            @RequestBody RecipeSearchConditionRequestDto condition,
+            Pageable pageable
+    ) {
+        RecipeListResponseDto results = recipeDetailFacade.searchRecipesWithLikes(condition, pageable);
+        return ResponseEntity.ok(results);
     }
 }

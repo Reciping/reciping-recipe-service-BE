@@ -1,8 +1,9 @@
 package com.three.recipingrecipeservicebe.recipeDetailPage.service;
 
 import com.three.recipingrecipeservicebe.bookmark.service.RecipeBookmarkService;
-import com.three.recipingrecipeservicebe.recipe.dto.MyRecipeListResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.MyRecipeSummaryResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeSearchConditionRequestDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeSummaryResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import com.three.recipingrecipeservicebe.recipeDetailPage.dto.*;
@@ -49,21 +50,33 @@ public class RecipeDetailFacade {
         return new RecipeDetailAggregateDto(updatedRecipeDto, comments);
     }
 
-    public MyRecipeListResponseDto getMyRecipesWithLikes(Long userId, Pageable pageable) {
-        Page<MyRecipeSummaryResponseDto> page = recipeService.getMyRecipes(userId, pageable);
+    public RecipeListResponseDto getMyRecipesWithLikes(Long userId, Pageable pageable) {
+        Page<RecipeSummaryResponseDto> page = recipeService.getMyRecipes(userId, pageable);
 
         return getRecipeListWithLikesResponseDto(userId, page);
     }
 
-    public MyRecipeListResponseDto getBookmarkedRecipesWithLikes(Long userId, Pageable pageable) {
-        Page<MyRecipeSummaryResponseDto> page = recipeService.getBookmarkedRecipeList(userId, pageable);
+    public RecipeListResponseDto getBookmarkedRecipesWithLikes(Long userId, Pageable pageable) {
+        Page<RecipeSummaryResponseDto> page = recipeService.getBookmarkedRecipeList(userId, pageable);
 
         return getRecipeListWithLikesResponseDto(userId, page);
     }
 
-    private MyRecipeListResponseDto getRecipeListWithLikesResponseDto(Long userId, Page<MyRecipeSummaryResponseDto> page) {
+    public RecipeListResponseDto searchRecipesWithLikes(RecipeSearchConditionRequestDto condition, Pageable pageable) {
+        Page<RecipeSummaryResponseDto> page = recipeService.searchRecipes(condition, pageable);
+
+        List<RecipeSummaryResponseDto> updatedList = getRecipeListWithSummaryResponseDto(page.getContent());
+
+        return RecipeListResponseDto.builder()
+                .recipes(updatedList)
+                .page(page.getNumber())
+                .totalPages(page.getTotalPages())
+                .build();
+    }
+
+    private RecipeListResponseDto getRecipeListWithLikesResponseDto(Long userId, Page<RecipeSummaryResponseDto> page) {
         List<Long> recipeIds = page.getContent().stream()
-                .map(MyRecipeSummaryResponseDto::getId)
+                .map(RecipeSummaryResponseDto::getId)
                 .toList();
 
         // 3. 좋아요 상태 조회 (비페이징)
@@ -75,9 +88,9 @@ public class RecipeDetailFacade {
         RecipeLikeStatusListResponseDto response = likeFeignClient.getLikeStatusForRecipes(requestDto);
         List<RecipeLikeStatusResponseDto> likeList = response.getData();
 
-        List<MyRecipeSummaryResponseDto> updatedList = IntStream.range(0, page.getContent().size())
+        List<RecipeSummaryResponseDto> updatedList = IntStream.range(0, page.getContent().size())
                 .mapToObj(i -> {
-                    MyRecipeSummaryResponseDto dto = page.getContent().get(i);
+                    RecipeSummaryResponseDto dto = page.getContent().get(i);
                     RecipeLikeStatusResponseDto like = likeList.get(i);
 
                     return dto.toBuilder()
@@ -88,10 +101,37 @@ public class RecipeDetailFacade {
                 .toList();
 
         // 5. 응답 DTO 조립 후 반환
-        return MyRecipeListResponseDto.builder()
+        return RecipeListResponseDto.builder()
                 .recipes(updatedList)
                 .page(page.getNumber())
                 .totalPages(page.getTotalPages())
                 .build();
+    }
+
+    private List<RecipeSummaryResponseDto> getRecipeListWithSummaryResponseDto(List<RecipeSummaryResponseDto> recipes) {
+        if (recipes.isEmpty()) return List.of();
+
+        List<Long> recipeIds = recipes.stream()
+                .map(RecipeSummaryResponseDto::getId)
+                .toList();
+
+        // 유저 ID 없이 좋아요 개수만 요청
+        LikeStatusListRequestDto requestDto = LikeStatusListRequestDto.builder()
+                .recipeIdList(recipeIds)
+                .build();
+
+        RecipeLikeStatusListResponseDto response = likeFeignClient.getLikeStatusForRecipes(requestDto);
+        List<RecipeLikeStatusResponseDto> likeList = response.getData();
+
+        return IntStream.range(0, recipes.size())
+                .mapToObj(i -> {
+                    RecipeSummaryResponseDto dto = recipes.get(i);
+                    RecipeLikeStatusResponseDto like = likeList.get(i);
+
+                    return dto.toBuilder()
+                            .likeCount(like.getLikeCount().intValue())
+                            .build(); // isLiked는 무시
+                })
+                .toList();
     }
 }

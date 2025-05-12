@@ -62,7 +62,7 @@ public class RecipeService {
     }
 
     @Transactional(readOnly = true)
-    public List<RecipeListResponseDto> getRecipeListByPage(Pageable pageable) {
+    public List<RecipeSummaryResponseDto> getRecipeListByPage(Pageable pageable) {
         return recipeRepository.findPagedByCreatedAtDesc(pageable).stream()
                 .map(recipeMapper::toListDto)
                 .toList();
@@ -117,12 +117,12 @@ public class RecipeService {
         recipeRepository.delete(recipe);
     }
 
-    public Page<MyRecipeSummaryResponseDto> getMyRecipes(Long userId, Pageable pageable) {
+    public Page<RecipeSummaryResponseDto> getMyRecipes(Long userId, Pageable pageable) {
         Page<Recipe> recipePage = recipeRepository.findByUserIdAndIsDeletedFalse(userId, pageable);
         return recipePage.map(recipeMapper::toMyRecipeSummaryDto);
     }
 
-    public Page<MyRecipeSummaryResponseDto> getBookmarkedRecipeList(Long userId, Pageable pageable) {
+    public Page<RecipeSummaryResponseDto> getBookmarkedRecipeList(Long userId, Pageable pageable) {
         // 1. 북마크 도큐먼트 조회
         Page<BookmarkResponseDto> bookmarkPage = recipeBookmarkService.getBookmarksByUserId(userId, pageable);
 
@@ -145,7 +145,7 @@ public class RecipeService {
                 .toList();
 
         // 6. DTO 매핑
-        List<MyRecipeSummaryResponseDto> mapped = orderedRecipes.stream()
+        List<RecipeSummaryResponseDto> mapped = orderedRecipes.stream()
                 .map(recipeMapper::toMyRecipeSummaryDto)
                 .toList();
 
@@ -164,10 +164,9 @@ public class RecipeService {
         return response;
     }
 
-    public List<RecipeListResponseDto> searchRecipes(RecipeSearchConditionRequestDto cond, Pageable pageable) {
-        return recipeRepository.searchByCondition(cond, pageable).stream()
-                .map(recipeMapper::toListDto)
-                .toList();
+    public Page<RecipeSummaryResponseDto> searchRecipes(RecipeSearchConditionRequestDto condition, Pageable pageable) {
+        Page<Recipe> page = recipeRepository.searchByCondition(condition, pageable);
+        return page.map(recipeMapper::toListDto); // DTO로 변환하면서 Page 유지
     }
 
     private <E extends Enum<E> & EnumWithLabel> List<Map<String, String>> toOptionList(E[] enums) {

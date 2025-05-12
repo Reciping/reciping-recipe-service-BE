@@ -21,8 +21,8 @@ public class RecipeController {
     private final RecipeService recipeService;
 
     @GetMapping
-    public ResponseEntity<List<RecipeListResponseDto>> getRecipeListByPage(Pageable pageable) {
-        List<RecipeListResponseDto> response = recipeService.getRecipeListByPage(pageable);
+    public ResponseEntity<List<RecipeSummaryResponseDto>> getRecipeListByPage(Pageable pageable) {
+        List<RecipeSummaryResponseDto> response = recipeService.getRecipeListByPage(pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -42,15 +42,6 @@ public class RecipeController {
     ) {
         RecipeCreatedResponseDto response = recipeService.createRecipe(requestDto, userId, file);
         return ResponseEntity.ok(Response.ok(response));
-    }
-
-    @PostMapping("/search")
-    public ResponseEntity<List<RecipeListResponseDto>> searchRecipes(
-            @RequestBody RecipeSearchConditionRequestDto condition,
-            Pageable pageable
-    ) {
-        List<RecipeListResponseDto> results = recipeService.searchRecipes(condition, pageable);
-        return ResponseEntity.ok(results);
     }
 
     @PutMapping("/{id}")

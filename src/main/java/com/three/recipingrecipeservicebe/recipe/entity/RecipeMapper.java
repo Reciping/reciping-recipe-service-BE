@@ -14,10 +14,10 @@ public interface RecipeMapper {
 
     RecipeDetailResponseDto toDto(Recipe recipe);
 
-    RecipeListResponseDto toListDto(Recipe recipe);
+    RecipeSummaryResponseDto toListDto(Recipe recipe);
 
     RecipeCreatedResponseDto toCreatedDto(Recipe recipe);
 
     @Mapping(target = "likeCount", constant = "0")
-    MyRecipeSummaryResponseDto toMyRecipeSummaryDto(Recipe recipe);
+    RecipeSummaryResponseDto toMyRecipeSummaryDto(Recipe recipe);
 }

@@ -1,24 +1,16 @@
 package com.three.recipingrecipeservicebe.recipe.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
-@AllArgsConstructor
 @Builder
 public class RecipeListResponseDto {
 
-    private Long id;
-    private Long userId;
-    private String title;
-    private String imageUrl;
-    private String difficulty;
-    private Integer cookingTime;
-
-    private LocalDateTime createdAt;
-    private LocalDateTime modifiedAt;
+    private List<RecipeSummaryResponseDto> recipes;
+    private int page;
+    private int totalPages;
 
 }
