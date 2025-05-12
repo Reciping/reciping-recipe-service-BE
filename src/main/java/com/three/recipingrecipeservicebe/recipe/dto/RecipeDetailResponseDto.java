@@ -19,7 +19,7 @@ public class RecipeDetailResponseDto {
     private Integer cookingTime;
     private String difficulty;
     private String category;
-    private String occasion;
+    private String situation;
     private String method;
     private String ingredient;
     private String objectName;

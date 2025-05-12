@@ -41,17 +41,21 @@ public class Recipe extends BaseEntity {
     @Column(length = 10)
     private String difficulty;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private String category;
+    private DishType dishType;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private String occasion;
+    private SituationType situationType;
 
-    @Column(name = "method", length = 50)
-    private String method;
-
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
-    private String ingredient;
+    private MethodType methodType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 50)
+    private IngredientType ingredientType;
 
     @Column(name = "object_name", length = 100)
     private String objectName;
@@ -76,10 +80,10 @@ public class Recipe extends BaseEntity {
                 .content(dto.getContent())
                 .cookingTime(dto.getCookingTime())
                 .difficulty(dto.getDifficulty())
-                .category(dto.getCategory())
-                .occasion(dto.getOccasion())
-                .method(dto.getMethod())
-                .ingredient(dto.getIngredient())
+                .dishType(dto.getDishType())
+                .situationType(dto.getSituationType())
+                .methodType(dto.getMethodType())
+                .ingredientType(dto.getIngredientType())
                 .keyName(dto.getKeyName())
                 .imageUrl(dto.getImageUrl())
                 .filePath(dto.getFilePath())
@@ -92,10 +96,10 @@ public class Recipe extends BaseEntity {
         if (dto.getContent() != null) this.content = dto.getContent();
         if (dto.getCookingTime() != null) this.cookingTime = dto.getCookingTime();
         if (dto.getDifficulty() != null) this.difficulty = dto.getDifficulty();
-        if (dto.getCategory() != null) this.category = dto.getCategory();
-        if (dto.getOccasion() != null) this.occasion = dto.getOccasion();
-        if (dto.getMethod() != null) this.method = dto.getMethod();
-        if (dto.getIngredient() != null) this.ingredient = dto.getIngredient();
+        if (dto.getDishType() != null) this.dishType = dto.getDishType();
+        if (dto.getSituationType() != null) this.situationType = dto.getSituationType();
+        if (dto.getMethodType() != null) this.methodType = dto.getMethodType();
+        if (dto.getIngredientType() != null) this.ingredientType = dto.getIngredientType();
 
         if (dto.getObjectName() != null) this.objectName = dto.getObjectName();
         if (dto.getKeyName() != null) this.keyName = dto.getKeyName();
