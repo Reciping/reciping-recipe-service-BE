@@ -6,7 +6,7 @@ import com.three.recipingrecipeservicebe.hashtag.repository.RecipeTagRepository;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
-import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
+import com.three.recipingrecipeservicebe.recipe.entity.*;
 import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import org.junit.jupiter.api.DisplayName;
@@ -45,10 +45,10 @@ class RecipeServiceTest {
                 .content("계란과 밥을 볶아서 만든 요리")
                 .cookingTime(15)
                 .difficulty("easy")
-                .category("한식")
-                .occasion("점심")
-                .method("볶음")
-                .ingredient("계란, 밥, 케찹")
+                .dishType(DishType.RICE_PORRIDGE)
+                .situationType(SituationType.DAILY)
+                .methodType(MethodType.STIR_FRY)
+                .ingredientType(IngredientType.EGG_DAIRY)
                 .build();
 
         Long userId = 1L;
@@ -78,10 +78,10 @@ class RecipeServiceTest {
                 .content("된장, 두부, 채소 등을 넣고 끓인다.")
                 .cookingTime(20)
                 .difficulty("medium")
-                .category("한식")
-                .occasion("저녁")
-                .method("끓이기")
-                .ingredient("된장, 두부, 애호박")
+                .dishType(DishType.STEW)                            // 찌개
+                .situationType(SituationType.LATE_NIGHT)               // 저녁
+                .methodType(MethodType.BOIL)                // 끓이기
+                .ingredientType(IngredientType.VEGETABLE)          // 채소 위주 (대표값)
                 .build();
 
         Long userId = 1L;

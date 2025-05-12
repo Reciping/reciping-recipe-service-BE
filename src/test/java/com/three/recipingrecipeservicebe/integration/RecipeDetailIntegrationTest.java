@@ -25,6 +25,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 //@TestPropertySource(properties = {
@@ -98,7 +99,7 @@ public class RecipeDetailIntegrationTest {
     @Test
     @DisplayName("READ 레시피 상세 정보 + 북마크 + 좋아요 + 댓글 조회")
     void getRecipeDetail_allIntegrated() throws Exception {
-        mockMvc.perform(get("/api/v1/recipe/{recipeId}", recipeId)
+        mockMvc.perform(get("/api/v1/recipes/{recipeId}", recipeId)
                         .header("X-USER-ID", userId)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
