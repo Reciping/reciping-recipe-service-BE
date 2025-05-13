@@ -43,7 +43,7 @@ public class RecipeDetailPageController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/categorySearch")
+    @PostMapping("/search/category")
     public ResponseEntity<RecipeListResponseDto> searchRecipes(
             @RequestBody RecipeSearchConditionRequestDto condition,
             Pageable pageable
