@@ -10,6 +10,8 @@ import com.three.recipingrecipeservicebe.recipe.dto.*;
 import com.three.recipingrecipeservicebe.recipe.entity.*;
 import com.three.recipingrecipeservicebe.recipe.infrastructure.s3.S3Uploader;
 import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
+import com.three.recipingrecipeservicebe.recommendation.dto.ChatGptRequestDto;
+import com.three.recipingrecipeservicebe.recommendation.service.OpenAiRecommendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +36,7 @@ public class RecipeService {
     private final RecipeTagService recipeTagService;
     private final HashTagService hashTagService;
     private final RecipeBookmarkService recipeBookmarkService;
+    private final OpenAiRecommendService openAiRecommendService;
 
     private final RecipeMapper recipeMapper;
     private final S3Uploader s3Uploader;
@@ -131,7 +134,7 @@ public class RecipeService {
                 .map(BookmarkResponseDto::getRecipeId)
                 .toList();
 
-        // 3. RDB 에서 레시피 조회 (순서 보장 안됨)
+
         List<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds);
 
         // 4. Map 으로 매핑 (id → Recipe)
@@ -153,6 +156,41 @@ public class RecipeService {
         return new PageImpl<>(mapped, pageable, bookmarkPage.getTotalElements());
     }
 
+    public Page<RecipeSummaryResponseDto> getRecommendRecipeList(Pageable pageable) {
+
+        Long pageSize = (long) pageable.getPageSize();
+        Long totalRecipeCount = recipeRepository.count();
+
+        ChatGptRequestDto chatGptRequestDto = ChatGptRequestDto.builder().totalRecipeCount(totalRecipeCount).pickCount(pageSize).build();
+
+        List<Long> recipeIds = openAiRecommendService.chat(chatGptRequestDto);
+
+        if (recipeIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        // 2. 레시피 조회
+        List<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds);
+
+        // 3. ID 기준 Map 생성
+        Map<Long, Recipe> recipeMap = recipes.stream()
+                .collect(Collectors.toMap(Recipe::getId, Function.identity()));
+
+        // 4. GPT 응답 순서대로 정렬
+        List<Recipe> orderedRecipes = recipeIds.stream()
+                .map(recipeMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        // 5. DTO 매핑
+        List<RecipeSummaryResponseDto> mapped = orderedRecipes.stream()
+                .map(recipeMapper::toMyRecipeSummaryDto)
+                .toList();
+
+        // 6. PageImpl로 래핑
+        return new PageImpl<>(mapped, pageable, totalRecipeCount);
+    }
+
     public Map<String, List<Map<String, String>>> getAllCategoryOptions() {
         Map<String, List<Map<String, String>>> response = new LinkedHashMap<>();
 
@@ -168,6 +206,8 @@ public class RecipeService {
         Page<Recipe> page = recipeRepository.searchByCondition(condition, pageable);
         return page.map(recipeMapper::toListDto); // DTO로 변환하면서 Page 유지
     }
+
+
 
     private <E extends Enum<E> & EnumWithLabel> List<Map<String, String>> toOptionList(E[] enums) {
         return Arrays.stream(enums)

@@ -51,4 +51,13 @@ public class RecipeDetailPageController {
         RecipeListResponseDto results = recipeDetailFacade.searchRecipesWithLikes(condition, pageable);
         return ResponseEntity.ok(results);
     }
+
+    @GetMapping("/recommend")
+    public ResponseEntity<RecipeListResponseDto> getRecommendedRecipes(
+            @RequestHeader("X-USER-ID") Long userId,
+            Pageable pageable
+    ) {
+        RecipeListResponseDto results = recipeDetailFacade.getRecommendListWithLikesResponseDto(userId, pageable);
+        return ResponseEntity.ok(results);
+    }
 }

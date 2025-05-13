@@ -74,6 +74,11 @@ public class RecipeDetailFacade {
                 .build();
     }
 
+    public RecipeListResponseDto getRecommendListWithLikesResponseDto(Long userId, Pageable pageable) {
+        Page<RecipeSummaryResponseDto> page = recipeService.getRecommendRecipeList(pageable);
+        return  getRecipeListWithLikesResponseDto(userId, page);
+    }
+
     private RecipeListResponseDto getRecipeListWithLikesResponseDto(Long userId, Page<RecipeSummaryResponseDto> page) {
         List<Long> recipeIds = page.getContent().stream()
                 .map(RecipeSummaryResponseDto::getId)
