@@ -37,7 +37,7 @@ class RecipeQueryRepositoryTest {
     }
 
     @Test
-    @DisplayName("DishType이 BANCHAN인 레시피만 조회")
+    @DisplayName("READ DishType이 BANCHAN인 레시피만 조회")
     void shouldFilterByDishType() {
         RecipeSearchConditionRequestDto condition = RecipeSearchConditionRequestDto.builder()
                 .dish(DishType.BANCHAN)
@@ -51,7 +51,7 @@ class RecipeQueryRepositoryTest {
     }
 
     @Test
-    @DisplayName("전체 검색 - 조건 없이 모든 레시피 반환")
+    @DisplayName("READ 전체 검색 - 조건 없이 모든 레시피 반환")
     void shouldReturnAllRecipesWhenNoFilter() {
         // 모든 필드를 null로 설정
         RecipeSearchConditionRequestDto condition = RecipeSearchConditionRequestDto.builder().build();
@@ -64,7 +64,7 @@ class RecipeQueryRepositoryTest {
     }
 
     @Test
-    @DisplayName("DishType = BANCHAN AND Situation = DAILY 조건 검색")
+    @DisplayName("READ DishType = BANCHAN AND Situation = DAILY 조건 검색")
     void shouldFilterByMultipleConditions() {
         RecipeSearchConditionRequestDto condition = RecipeSearchConditionRequestDto.builder()
                 .dish(DishType.BANCHAN)

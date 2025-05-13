@@ -2,7 +2,7 @@ package com.three.recipingrecipeservicebe.integration;
 
 import com.three.recipingrecipeservicebe.bookmark.entity.RecipeBookmarkDocument;
 import com.three.recipingrecipeservicebe.bookmark.repository.RecipeBookmarkRepository;
-import com.three.recipingrecipeservicebe.recipe.dto.MyRecipeSummaryResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeSummaryResponseDto;
 import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
 import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
@@ -49,11 +49,11 @@ class RecipeServiceBookmarkTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // when
-        Page<MyRecipeSummaryResponseDto> result = recipeService.getBookmarkedRecipeList(userId, pageable);
+        Page<RecipeSummaryResponseDto> result = recipeService.getBookmarkedRecipeList(userId, pageable);
 
         // then
         List<String> titles = result.getContent().stream()
-                .map(MyRecipeSummaryResponseDto::getTitle)
+                .map(RecipeSummaryResponseDto::getTitle)
                 .toList();
 
         titles.forEach(System.out::println);

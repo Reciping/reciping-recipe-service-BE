@@ -10,6 +10,8 @@ import com.three.recipingrecipeservicebe.recipe.dto.*;
 import com.three.recipingrecipeservicebe.recipe.entity.*;
 import com.three.recipingrecipeservicebe.recipe.infrastructure.s3.S3Uploader;
 import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
+import com.three.recipingrecipeservicebe.recommendation.dto.ChatGptRequestDto;
+import com.three.recipingrecipeservicebe.recommendation.service.OpenAiRecommendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +36,7 @@ public class RecipeService {
     private final RecipeTagService recipeTagService;
     private final HashTagService hashTagService;
     private final RecipeBookmarkService recipeBookmarkService;
+    private final OpenAiRecommendService openAiRecommendService;
 
     private final RecipeMapper recipeMapper;
     private final S3Uploader s3Uploader;
@@ -62,7 +65,7 @@ public class RecipeService {
     }
 
     @Transactional(readOnly = true)
-    public List<RecipeListResponseDto> getRecipeListByPage(Pageable pageable) {
+    public List<RecipeSummaryResponseDto> getRecipeListByPage(Pageable pageable) {
         return recipeRepository.findPagedByCreatedAtDesc(pageable).stream()
                 .map(recipeMapper::toListDto)
                 .toList();
@@ -117,12 +120,12 @@ public class RecipeService {
         recipeRepository.delete(recipe);
     }
 
-    public Page<MyRecipeSummaryResponseDto> getMyRecipes(Long userId, Pageable pageable) {
+    public Page<RecipeSummaryResponseDto> getMyRecipes(Long userId, Pageable pageable) {
         Page<Recipe> recipePage = recipeRepository.findByUserIdAndIsDeletedFalse(userId, pageable);
         return recipePage.map(recipeMapper::toMyRecipeSummaryDto);
     }
 
-    public Page<MyRecipeSummaryResponseDto> getBookmarkedRecipeList(Long userId, Pageable pageable) {
+    public Page<RecipeSummaryResponseDto> getBookmarkedRecipeList(Long userId, Pageable pageable) {
         // 1. 북마크 도큐먼트 조회
         Page<BookmarkResponseDto> bookmarkPage = recipeBookmarkService.getBookmarksByUserId(userId, pageable);
 
@@ -131,7 +134,7 @@ public class RecipeService {
                 .map(BookmarkResponseDto::getRecipeId)
                 .toList();
 
-        // 3. RDB 에서 레시피 조회 (순서 보장 안됨)
+
         List<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds);
 
         // 4. Map 으로 매핑 (id → Recipe)
@@ -145,12 +148,47 @@ public class RecipeService {
                 .toList();
 
         // 6. DTO 매핑
-        List<MyRecipeSummaryResponseDto> mapped = orderedRecipes.stream()
+        List<RecipeSummaryResponseDto> mapped = orderedRecipes.stream()
                 .map(recipeMapper::toMyRecipeSummaryDto)
                 .toList();
 
         // 7. 페이징 복원
         return new PageImpl<>(mapped, pageable, bookmarkPage.getTotalElements());
+    }
+
+    public Page<RecipeSummaryResponseDto> getRecommendRecipeList(Pageable pageable) {
+
+        Long pageSize = (long) pageable.getPageSize();
+        Long totalRecipeCount = recipeRepository.count();
+
+        ChatGptRequestDto chatGptRequestDto = ChatGptRequestDto.builder().totalRecipeCount(totalRecipeCount).pickCount(pageSize).build();
+
+        List<Long> recipeIds = openAiRecommendService.chat(chatGptRequestDto);
+
+        if (recipeIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        // 2. 레시피 조회
+        List<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds);
+
+        // 3. ID 기준 Map 생성
+        Map<Long, Recipe> recipeMap = recipes.stream()
+                .collect(Collectors.toMap(Recipe::getId, Function.identity()));
+
+        // 4. GPT 응답 순서대로 정렬
+        List<Recipe> orderedRecipes = recipeIds.stream()
+                .map(recipeMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        // 5. DTO 매핑
+        List<RecipeSummaryResponseDto> mapped = orderedRecipes.stream()
+                .map(recipeMapper::toMyRecipeSummaryDto)
+                .toList();
+
+        // 6. PageImpl로 래핑
+        return new PageImpl<>(mapped, pageable, totalRecipeCount);
     }
 
     public Map<String, List<Map<String, String>>> getAllCategoryOptions() {
@@ -164,11 +202,12 @@ public class RecipeService {
         return response;
     }
 
-    public List<RecipeListResponseDto> searchRecipes(RecipeSearchConditionRequestDto cond, Pageable pageable) {
-        return recipeRepository.searchByCondition(cond, pageable).stream()
-                .map(recipeMapper::toListDto)
-                .toList();
+    public Page<RecipeSummaryResponseDto> searchRecipes(RecipeSearchConditionRequestDto condition, Pageable pageable) {
+        Page<Recipe> page = recipeRepository.searchByCondition(condition, pageable);
+        return page.map(recipeMapper::toListDto); // DTO로 변환하면서 Page 유지
     }
+
+
 
     private <E extends Enum<E> & EnumWithLabel> List<Map<String, String>> toOptionList(E[] enums) {
         return Arrays.stream(enums)
@@ -220,7 +259,4 @@ public class RecipeService {
                 .imageUrl(imageUrl)
                 .build();
     }
-
-    // TODO [강산하] [2025-05-05]: 엘라스틱서치 일치율 검색 결과 ID 리스트로 전달받아, 해당 ID 기준으로 쿼리 호출하도록 구현
-
 }

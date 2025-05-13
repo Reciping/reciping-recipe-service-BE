@@ -6,6 +6,7 @@ import com.three.recipingrecipeservicebe.hashtag.repository.RecipeTagRepository;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
 import com.three.recipingrecipeservicebe.recipe.entity.Recipe;
 import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,12 @@ public class RecipeIntegrationTest {
     private RecipeTagRepository recipeTagRepository;
 
     private final Long testUserId = 1L;
+
+    @BeforeEach
+    void setUp() {
+        recipeRepository.deleteAll();
+        recipeTagRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("CREATE 이미지 없는 레시피 생성")
