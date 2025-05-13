@@ -126,7 +126,7 @@ public class RecipeDetailIntegrationTest {
                 .dish(DishType.BANCHAN)
                 .build();
 
-        mockMvc.perform(post("/api/v1/recipes/search")
+        mockMvc.perform(post("/api/v1/recipes/categorySearch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(condition)))
                 .andExpect(status().isOk())
