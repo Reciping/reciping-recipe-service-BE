@@ -259,7 +259,4 @@ public class RecipeService {
                 .imageUrl(imageUrl)
                 .build();
     }
-
-    // TODO [강산하] [2025-05-05]: 엘라스틱서치 일치율 검색 결과 ID 리스트로 전달받아, 해당 ID 기준으로 쿼리 호출하도록 구현
-
 }
