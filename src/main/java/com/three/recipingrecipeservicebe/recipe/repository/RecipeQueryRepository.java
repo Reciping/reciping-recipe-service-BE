@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface RecipeQueryRepository {
 
-    List<Recipe> findPagedByCreatedAtDesc(Pageable pageable);
+    Page<Recipe> findPagedByCreatedAtDesc(Pageable pageable);
 
     Page<Recipe> searchByCondition(RecipeSearchConditionRequestDto condition, Pageable pageable);
 
