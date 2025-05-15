@@ -1,6 +1,7 @@
 package com.three.recipingrecipeservicebe.recipe.entity;
 
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
+import com.three.recipingrecipeservicebe.recipe.entity.enums.CookingTimeConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -36,7 +37,7 @@ public class Recipe extends BaseEntity {
     private String imageUrl;
 
     @Column(name = "cooking_time")
-    private Integer cookingTime;
+    private String cookingTime;
 
     @Column(length = 10)
     private String difficulty;
@@ -78,8 +79,8 @@ public class Recipe extends BaseEntity {
                 .userId(userId)
                 .title(dto.getTitle())
                 .content(dto.getContent())
-                .cookingTime(dto.getCookingTime())
-                .difficulty(dto.getDifficulty())
+                .cookingTime(dto.getCookingTime() != null ? dto.getCookingTime().getLabel() : null)
+                .difficulty(dto.getDifficulty() != null ? dto.getDifficulty().getLabel() : null)
                 .dishType(dto.getDishType())
                 .situationType(dto.getSituationType())
                 .methodType(dto.getMethodType())
@@ -94,8 +95,12 @@ public class Recipe extends BaseEntity {
     public void updateFromDto(RecipeRequestDto dto) {
         if (dto.getTitle() != null) this.title = dto.getTitle();
         if (dto.getContent() != null) this.content = dto.getContent();
-        if (dto.getCookingTime() != null) this.cookingTime = dto.getCookingTime();
-        if (dto.getDifficulty() != null) this.difficulty = dto.getDifficulty();
+        if (dto.getCookingTime() != null) {
+            this.cookingTime = dto.getCookingTime().getLabel();
+        }
+        if (dto.getDifficulty() != null) {
+            this.difficulty = dto.getDifficulty().getLabel();
+        }
         if (dto.getDishType() != null) this.dishType = dto.getDishType();
         if (dto.getSituationType() != null) this.situationType = dto.getSituationType();
         if (dto.getMethodType() != null) this.methodType = dto.getMethodType();
