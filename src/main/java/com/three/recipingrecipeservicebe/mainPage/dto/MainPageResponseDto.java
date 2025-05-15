@@ -11,5 +11,5 @@ import java.util.List;
 public class MainPageResponseDto {
     private List<AdResponse> ads;
     private List<EventSummaryResponseDto> events;
-    private List<RecipeSummaryResponseDto> recommendedRecipes;
+    private List<RecipeSummaryResponseDto> recommendedRecipeList;
 }

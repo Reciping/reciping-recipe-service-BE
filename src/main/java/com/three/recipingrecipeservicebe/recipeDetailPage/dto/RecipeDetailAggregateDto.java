@@ -3,6 +3,7 @@ package com.three.recipingrecipeservicebe.recipeDetailPage.dto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -10,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class RecipeDetailAggregateDto {
     private RecipeDetailResponseDto recipe;
-    private List<CommentResponseDto> comments;
+    private Page<CommentResponseDto> comments;
 }
