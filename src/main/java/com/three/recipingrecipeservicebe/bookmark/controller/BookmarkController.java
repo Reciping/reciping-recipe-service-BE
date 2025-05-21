@@ -1,5 +1,6 @@
 package com.three.recipingrecipeservicebe.bookmark.controller;
 
+import com.three.recipingrecipeservicebe.bookmark.dto.BookmarkRequestDto;
 import com.three.recipingrecipeservicebe.bookmark.dto.BookmarkResponseDto;
 import com.three.recipingrecipeservicebe.bookmark.service.RecipeBookmarkService;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,9 @@ public class BookmarkController {
 
     @PostMapping("/toggle")
     public ResponseEntity<Boolean> toggleBookmark(
-            @RequestParam Long userId,
-            @RequestParam Long recipeId
+            @RequestBody BookmarkRequestDto bookmarkRequestDto
     ) {
-        boolean isBookmarked = recipeBookmarkService.toggleBookmark(userId, recipeId);
+        boolean isBookmarked = recipeBookmarkService.toggleBookmark(bookmarkRequestDto);
         return ResponseEntity.ok(isBookmarked);
     }
 }

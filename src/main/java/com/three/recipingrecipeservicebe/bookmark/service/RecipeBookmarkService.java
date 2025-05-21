@@ -1,5 +1,6 @@
 package com.three.recipingrecipeservicebe.bookmark.service;
 
+import com.three.recipingrecipeservicebe.bookmark.dto.BookmarkRequestDto;
 import com.three.recipingrecipeservicebe.bookmark.mapper.BookmarkMapper;
 import com.three.recipingrecipeservicebe.bookmark.dto.BookmarkResponseDto;
 import com.three.recipingrecipeservicebe.bookmark.entity.RecipeBookmarkDocument;
@@ -23,22 +24,22 @@ public class RecipeBookmarkService {
         return page.map(bookmarkMapper::toResponseDto);
     }
 
-    public boolean toggleBookmark(Long userId, Long recipeId) {
-        Optional<RecipeBookmarkDocument> bookmark = recipeBookmarkRepository.findByUserIdAndRecipeId(userId, recipeId);
+    public boolean toggleBookmark(BookmarkRequestDto bookmarkRequestDto) {
+        Optional<RecipeBookmarkDocument> bookmark = recipeBookmarkRepository.findByUserIdAndRecipeId(bookmarkRequestDto.getUserId(), bookmarkRequestDto.getRecipeId());
 
         if (bookmark.isPresent()) {
             recipeBookmarkRepository.delete(bookmark.get());
             return false;
         }
 
-        long currentCount = recipeBookmarkRepository.countByUserId(userId);
+        long currentCount = recipeBookmarkRepository.countByUserId(bookmarkRequestDto.getUserId());
         if (currentCount >= 30) {
             throw new IllegalStateException("즐겨찾기는 최대 30개까지만 가능합니다.");
         }
 
         RecipeBookmarkDocument newBookmark = RecipeBookmarkDocument.builder()
-                .userId(userId)
-                .recipeId(recipeId)
+                .userId(bookmarkRequestDto.getUserId())
+                .recipeId(bookmarkRequestDto.getRecipeId())
                 .build();
 
         recipeBookmarkRepository.save(newBookmark);
