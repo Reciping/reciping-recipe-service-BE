@@ -4,12 +4,16 @@ import com.three.recipingrecipeservicebe.mainPage.entity.AdPosition;
 import com.three.recipingrecipeservicebe.mainPage.entity.AdStatus;
 import com.three.recipingrecipeservicebe.mainPage.entity.AdType;
 import com.three.recipingrecipeservicebe.mainPage.entity.BillingType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class AdResponse {
     private Long id;

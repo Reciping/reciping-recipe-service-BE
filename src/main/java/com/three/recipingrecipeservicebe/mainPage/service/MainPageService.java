@@ -1,5 +1,6 @@
 package com.three.recipingrecipeservicebe.mainPage.service;
 
+import com.three.recipingrecipeservicebe.common.dto.Response;
 import com.three.recipingrecipeservicebe.mainPage.dto.AdResponse;
 import com.three.recipingrecipeservicebe.mainPage.dto.EventSummaryResponseDto;
 import com.three.recipingrecipeservicebe.mainPage.dto.MainPageResponseDto;
@@ -22,14 +23,15 @@ public class MainPageService {
     private final RecipeDetailFacade recipeDetailFacade;
 
     public MainPageResponseDto getMainPageContents(Long userId, String position, Pageable pageable) {
+
         List<AdResponse> ads = adFeignClient.serveAdsByPosition(position);
-        List<EventSummaryResponseDto> events = eventFeignClient.getAllEventSummaries();
+        List<EventSummaryResponseDto> events = eventFeignClient.getAllEventSummaries().getData();
         RecipeListResponseDto recipeList = recipeDetailFacade.getRecommendListWithLikesResponseDto(userId, pageable);
 
         return MainPageResponseDto.builder()
                 .ads(ads)
                 .events(events)
-                .recommendedRecipes(recipeList.getRecipes())
+                .recommendedRecipeList(recipeList.getRecipes())
                 .build();
     }
 }
