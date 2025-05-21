@@ -42,16 +42,16 @@ public class RecipeService {
     private final S3Uploader s3Uploader;
 
     @Transactional(readOnly = true)
-    public RecipeDetailResponseDto getRecipeById(Long id, Long userId) {
+    public RecipeDetailResponseDto getRecipeById(Long userId, Long recipeId) {
         // 레시피 상세 정보
-        Recipe recipe = recipeRepository.findById(id)
+        Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new IllegalArgumentException("레시피를 찾을 수 없습니다."));
 
         // TAG 가져오기
-        List<String> tags = recipeTagService.findTagsByRecipeId(id);
+        List<String> tags = recipeTagService.findTagsByRecipeId(recipeId);
 
         // 즐겨찾기 가져오기
-        boolean isBookmarked = recipeBookmarkService.isBookmarked(userId, id);
+        boolean isBookmarked = recipeBookmarkService.isBookmarked(userId, recipeId);
 
         RecipeDetailResponseDto baseDto = recipeMapper.toDto(recipe);
 
@@ -65,10 +65,12 @@ public class RecipeService {
     }
 
     @Transactional(readOnly = true)
-    public List<RecipeSummaryResponseDto> getRecipeListByPage(Pageable pageable) {
-        return recipeRepository.findPagedByCreatedAtDesc(pageable).stream()
+    public Page<RecipeSummaryResponseDto> getRecipeListByPage(Pageable pageable) {
+        Page<Recipe> page = recipeRepository.findPagedByCreatedAtDesc(pageable);
+        List<RecipeSummaryResponseDto> dtoList = page.getContent().stream()
                 .map(recipeMapper::toListDto)
                 .toList();
+        return new PageImpl<>(dtoList, pageable, page.getTotalElements());
     }
 
     @Transactional
@@ -135,7 +137,7 @@ public class RecipeService {
                 .toList();
 
 
-        List<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds);
+        Page<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds, pageable);
 
         // 4. Map 으로 매핑 (id → Recipe)
         Map<Long, Recipe> recipeMap = recipes.stream()
@@ -170,7 +172,7 @@ public class RecipeService {
         }
 
         // 2. 레시피 조회
-        List<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds);
+        Page<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds, pageable);
 
         // 3. ID 기준 Map 생성
         Map<Long, Recipe> recipeMap = recipes.stream()
@@ -194,10 +196,12 @@ public class RecipeService {
     public Map<String, List<Map<String, String>>> getAllCategoryOptions() {
         Map<String, List<Map<String, String>>> response = new LinkedHashMap<>();
 
-        response.put("dish", toOptionList(DishType.values()));
-        response.put("situation", toOptionList(SituationType.values()));
-        response.put("ingredient", toOptionList(IngredientType.values()));
-        response.put("method", toOptionList(MethodType.values()));
+        response.put("dishType", toOptionList(DishType.values()));
+        response.put("situationType", toOptionList(SituationType.values()));
+        response.put("ingredientType", toOptionList(IngredientType.values()));
+        response.put("methodType", toOptionList(MethodType.values()));
+        response.put("cookingTime", toOptionList(CookingTime.values()));
+        response.put("difficulty", toOptionList(Difficulty.values()));
 
         return response;
     }

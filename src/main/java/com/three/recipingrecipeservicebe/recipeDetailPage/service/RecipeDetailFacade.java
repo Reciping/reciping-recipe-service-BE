@@ -11,6 +11,7 @@ import com.three.recipingrecipeservicebe.recipeDetailPage.feign.CommentFeignClie
 import com.three.recipingrecipeservicebe.recipeDetailPage.feign.LikeFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -26,12 +27,12 @@ public class RecipeDetailFacade {
     private final CommentFeignClient commentFeignClient;
     private final LikeFeignClient likeFeignClient;
 
-    public RecipeDetailAggregateDto getRecipeDetail(Long userId, Long recipeId) {
+    public RecipeDetailAggregateDto getRecipeDetail(Long userId, Long recipeId, Pageable pageable) {
         // 1. 레시피 조회
         RecipeDetailResponseDto recipeDto = recipeService.getRecipeById(userId, recipeId);
 
         // 2. 댓글 조회
-        List<CommentResponseDto> comments = commentFeignClient.getCommentsByRecipeId(recipeId);
+        Page<CommentResponseDto> comments = commentFeignClient.getCommentsByRecipeId(recipeId, pageable);
 
         // 3. 좋아요 상태 조회
         RecipeLikeStatusResponseDto likeStatus = likeFeignClient.getRecipeLikeStatus(recipeId, userId);
@@ -50,6 +51,13 @@ public class RecipeDetailFacade {
         return new RecipeDetailAggregateDto(updatedRecipeDto, comments);
     }
 
+
+    public Page<RecipeSummaryResponseDto> getDefaultRecipeListWithLikes(Pageable pageable) {
+        Page<RecipeSummaryResponseDto> page = recipeService.getRecipeListByPage(pageable);
+        List<RecipeSummaryResponseDto> content = getRecipeListWithSummaryResponseDto(page.getContent());
+        return new PageImpl<>(content, pageable, page.getTotalElements());
+    }
+
     public RecipeListResponseDto getMyRecipesWithLikes(Long userId, Pageable pageable) {
         Page<RecipeSummaryResponseDto> page = recipeService.getMyRecipes(userId, pageable);
 
@@ -62,16 +70,10 @@ public class RecipeDetailFacade {
         return getRecipeListWithLikesResponseDto(userId, page);
     }
 
-    public RecipeListResponseDto searchRecipesWithLikes(RecipeSearchConditionRequestDto condition, Pageable pageable) {
+    public Page<RecipeSummaryResponseDto> searchRecipesWithLikes(RecipeSearchConditionRequestDto condition, Pageable pageable) {
         Page<RecipeSummaryResponseDto> page = recipeService.searchRecipes(condition, pageable);
-
         List<RecipeSummaryResponseDto> updatedList = getRecipeListWithSummaryResponseDto(page.getContent());
-
-        return RecipeListResponseDto.builder()
-                .recipes(updatedList)
-                .page(page.getNumber())
-                .totalPages(page.getTotalPages())
-                .build();
+        return new PageImpl<>(updatedList, pageable, page.getTotalElements());
     }
 
     public RecipeListResponseDto getRecommendListWithLikesResponseDto(Long userId, Pageable pageable) {

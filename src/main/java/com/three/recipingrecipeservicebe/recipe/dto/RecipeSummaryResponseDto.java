@@ -1,12 +1,12 @@
 package com.three.recipingrecipeservicebe.recipe.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class RecipeSummaryResponseDto {

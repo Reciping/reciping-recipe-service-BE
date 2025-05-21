@@ -5,6 +5,7 @@ import com.three.recipingrecipeservicebe.recipe.dto.*;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +22,8 @@ public class RecipeController {
     private final RecipeService recipeService;
 
     @GetMapping
-    public ResponseEntity<List<RecipeSummaryResponseDto>> getRecipeListByPage(Pageable pageable) {
-        List<RecipeSummaryResponseDto> response = recipeService.getRecipeListByPage(pageable);
+    public ResponseEntity<Page<RecipeSummaryResponseDto>> getRecipeListByPage(Pageable pageable) {
+        Page<RecipeSummaryResponseDto> response = recipeService.getRecipeListByPage(pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -37,7 +38,7 @@ public class RecipeController {
     public ResponseEntity<Response<RecipeCreatedResponseDto>> createRecipe(
             @RequestPart("requestDto") @Valid RecipeRequestDto requestDto,
             @RequestPart(value = "file", required = false) MultipartFile file,
-//            @AuthenticationPrincipal(expression = "userId")
+//            @AuthenticationPrincipal UserDetailsImpl userDetails
             @RequestHeader("X-USER-ID") Long userId
     ) {
         RecipeCreatedResponseDto response = recipeService.createRecipe(requestDto, userId, file);

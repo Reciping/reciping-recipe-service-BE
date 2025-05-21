@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.5'
+    id 'org.springframework.boot' version '3.3.3'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -18,14 +18,14 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', "2024.0.1")
+    set('springCloudVersion', "2023.0.3")
 }
 
 dependencies {
     // JUnit
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.4.5'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.3.3'
     // Elasticsearch
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
     // Mongodb
@@ -44,7 +44,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-//    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.security:spring-security-test'
     // QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
@@ -56,8 +56,16 @@ dependencies {
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
     // H2
-    implementation 'com.h2database:h2'
+    implementation 'com.h2database:h2:2.2.224'
 
     // FeignClient
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
@@ -78,6 +86,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'org.slf4j:slf4j-api'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
 
 }
 

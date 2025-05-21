@@ -15,5 +15,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long>, RecipeQue
 
     Page<Recipe> findByUserIdAndIsDeletedFalse(Long userId, Pageable pageable);
 
+    Page<Recipe> findByIdInAndIsDeletedFalse(List<Long> ids, Pageable pageable);
+
     List<Recipe> findByIdInAndIsDeletedFalse(List<Long> ids);
 }

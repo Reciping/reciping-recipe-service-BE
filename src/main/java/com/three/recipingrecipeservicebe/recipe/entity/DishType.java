@@ -1,9 +1,11 @@
 package com.three.recipingrecipeservicebe.recipe.entity;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 @Getter
 @RequiredArgsConstructor
@@ -33,5 +35,13 @@ public enum DishType implements EnumWithLabel {
     @Override
     public String getLabel() {
         return label;
+    }
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static DishType fromLabel(String label) {
+        return Arrays.stream(DishType.values())
+                .filter(e -> e.label.equals(label))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unknown DishType label: " + label));
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "reciping-ads-service-BE", url = "http://localhost:8083")
+@FeignClient(name = "reciping-ads-service-BE", url = "http://172.16.24.34:8085")
 public interface AdFeignClient {
 
     @GetMapping("/api/v1/ads/public/serve")
