@@ -26,7 +26,7 @@ public enum Difficulty implements EnumWithLabel {
         return label;
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static Difficulty fromLabel(String label) {
         return Arrays.stream(Difficulty.values())
                 .filter(d -> d.label.equals(label))

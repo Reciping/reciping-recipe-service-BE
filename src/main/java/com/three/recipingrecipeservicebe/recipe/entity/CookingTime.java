@@ -30,7 +30,7 @@ public enum CookingTime implements EnumWithLabel {
         return label;
     }
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public static CookingTime fromLabel(String label) {
         return Arrays.stream(CookingTime.values())
                 .filter(ct -> ct.label.equals(label))
