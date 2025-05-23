@@ -1,6 +1,8 @@
 package com.three.recipingrecipeservicebe.recipe.entity;
 
-import com.three.recipingrecipeservicebe.recipe.dto.*;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeSummaryResponseDto;
 import org.mapstruct.*;
 
 @Mapper(componentModel = "spring",
@@ -8,9 +10,6 @@ import org.mapstruct.*;
         builder = @Builder(disableBuilder = true),
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface RecipeMapper {
-
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateFromDto(RecipeRequestDto dto, @MappingTarget Recipe entity);
 
     RecipeDetailResponseDto toDto(Recipe recipe);
 
