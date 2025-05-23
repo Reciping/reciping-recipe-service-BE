@@ -1,9 +1,11 @@
 package com.three.recipingrecipeservicebe.recipe.entity;
 
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
-import com.three.recipingrecipeservicebe.recipe.entity.enums.CookingTimeConverter;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
