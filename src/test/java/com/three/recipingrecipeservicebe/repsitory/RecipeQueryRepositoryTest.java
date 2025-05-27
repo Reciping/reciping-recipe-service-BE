@@ -40,7 +40,7 @@ class RecipeQueryRepositoryTest {
     @DisplayName("READ DishType이 BANCHAN인 레시피만 조회")
     void shouldFilterByDishType() {
         RecipeSearchConditionRequestDto condition = RecipeSearchConditionRequestDto.builder()
-                .dish(DishType.BANCHAN)
+                .dishType(DishType.BANCHAN)
                 .build();
 
         Page<Recipe> result = recipeQueryRepositoryImpl.searchByCondition(condition, PageRequest.of(0, 10));
@@ -67,8 +67,8 @@ class RecipeQueryRepositoryTest {
     @DisplayName("READ DishType = BANCHAN AND Situation = DAILY 조건 검색")
     void shouldFilterByMultipleConditions() {
         RecipeSearchConditionRequestDto condition = RecipeSearchConditionRequestDto.builder()
-                .dish(DishType.BANCHAN)
-                .situation(SituationType.DAILY)
+                .dishType(DishType.BANCHAN)
+                .situationType(SituationType.DAILY)
                 .build();
 
         Page<Recipe> result = recipeQueryRepositoryImpl.searchByCondition(condition, PageRequest.of(0, 10));

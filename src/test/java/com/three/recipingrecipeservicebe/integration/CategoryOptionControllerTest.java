@@ -25,11 +25,11 @@ class CategoryOptionControllerTest {
         mockMvc.perform(get("/api/v1/recipes/category-options"))
                 .andDo(print())  // 👈 응답 내용 출력
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.dish").isArray())
-                .andExpect(jsonPath("$.method").isArray())
-                .andExpect(jsonPath("$.ingredient").isArray())
-                .andExpect(jsonPath("$.situation").isArray())
-                .andExpect(jsonPath("$.dish[0].value").exists())
-                .andExpect(jsonPath("$.dish[0].label").exists());
+                .andExpect(jsonPath("$.dishType").isArray())
+                .andExpect(jsonPath("$.methodType").isArray())
+                .andExpect(jsonPath("$.ingredientType").isArray())
+                .andExpect(jsonPath("$.situationType").isArray())
+                .andExpect(jsonPath("$.dishType[0].value").exists())
+                .andExpect(jsonPath("$.dishType[0].label").exists());
     }
 }

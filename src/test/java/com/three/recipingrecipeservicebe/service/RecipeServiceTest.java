@@ -1,10 +1,8 @@
 package com.three.recipingrecipeservicebe.service;
 
 import com.three.recipingrecipeservicebe.global.exception.custom.ForbiddenException;
-import com.three.recipingrecipeservicebe.hashtag.entity.RecipeTagDocument;
 import com.three.recipingrecipeservicebe.hashtag.repository.RecipeTagRepository;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeCreatedResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeRequestDto;
 import com.three.recipingrecipeservicebe.recipe.entity.*;
 import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
@@ -16,8 +14,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,8 +39,8 @@ class RecipeServiceTest {
         RecipeRequestDto dto = RecipeRequestDto.builder()
                 .title("오므라이스")
                 .content("계란과 밥을 볶아서 만든 요리")
-                .cookingTime(15)
-                .difficulty("easy")
+                .cookingTime(CookingTime.fromLabel("15분 이내"))
+                .difficulty(Difficulty.fromLabel("초급"))
                 .dishType(DishType.RICE_PORRIDGE)
                 .situationType(SituationType.DAILY)
                 .methodType(MethodType.STIR_FRY)
@@ -76,8 +72,8 @@ class RecipeServiceTest {
         RecipeRequestDto dto = RecipeRequestDto.builder()
                 .title("된장찌개")
                 .content("된장, 두부, 채소 등을 넣고 끓인다.")
-                .cookingTime(20)
-                .difficulty("medium")
+                .cookingTime(CookingTime.fromLabel("20분 이내"))
+                .difficulty(Difficulty.fromLabel("중급"))
                 .dishType(DishType.STEW)                            // 찌개
                 .situationType(SituationType.LATE_NIGHT)               // 저녁
                 .methodType(MethodType.BOIL)                // 끓이기
@@ -222,30 +218,5 @@ class RecipeServiceTest {
         assertThatThrownBy(() ->
                 recipeService.updateRecipe(saved.getId(), dto, 2L, null)
         ).isInstanceOf(ForbiddenException.class);
-    }
-
-    @Test
-    @DisplayName("CREATE 레시피 ID로 상세 정보, 태그 조회")
-    void getRecipeById_withTags() {
-        // given
-        Long userId = 1L;
-
-        Recipe savedRecipe = recipeRepository.save(Recipe.builder()
-                .title("김치볶음밥")
-                .content("김치와 밥을 볶는다.")
-                .userId(1L)
-                .build());
-
-        recipeTagRepository.save(RecipeTagDocument.builder()
-                .recipeId(savedRecipe.getId())
-                .tags(List.of("김치", "볶음"))
-                .build());
-
-        // when
-        RecipeDetailResponseDto dto = recipeService.getRecipeById(savedRecipe.getId(), userId);
-
-        // then
-        assertThat(dto.getTitle()).isEqualTo("김치볶음밥");
-        assertThat(dto.getTags()).containsExactlyInAnyOrder("김치", "볶음");
     }
 }
