@@ -1,6 +1,7 @@
 package com.three.recipingrecipeservicebe.recipeDetailPage.service;
 
 import com.three.recipingrecipeservicebe.bookmark.service.RecipeBookmarkService;
+import com.three.recipingrecipeservicebe.global.security.UserDetailsImpl;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeSearchConditionRequestDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeSummaryResponseDto;
@@ -27,7 +28,9 @@ public class RecipeDetailFacade {
     private final CommentFeignClient commentFeignClient;
     private final LikeFeignClient likeFeignClient;
 
-    public RecipeDetailAggregateDto getRecipeDetail(Long userId, Long recipeId, Pageable pageable) {
+    public RecipeDetailAggregateDto getRecipeDetail(UserDetailsImpl userDetails, Long recipeId, Pageable pageable) {
+        Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+
         // 1. 레시피 조회
         RecipeDetailResponseDto recipeDto = recipeService.getRecipeById(userId, recipeId);
 
@@ -61,13 +64,13 @@ public class RecipeDetailFacade {
     public RecipeListResponseDto getMyRecipesWithLikes(Long userId, Pageable pageable) {
         Page<RecipeSummaryResponseDto> page = recipeService.getMyRecipes(userId, pageable);
 
-        return getRecipeListWithLikesResponseDto(userId, page);
+        return getRecipeListWithLikesResponseDto(page);
     }
 
     public RecipeListResponseDto getBookmarkedRecipesWithLikes(Long userId, Pageable pageable) {
         Page<RecipeSummaryResponseDto> page = recipeService.getBookmarkedRecipeList(userId, pageable);
 
-        return getRecipeListWithLikesResponseDto(userId, page);
+        return getRecipeListWithLikesResponseDto(page);
     }
 
     public Page<RecipeSummaryResponseDto> searchRecipesWithLikes(RecipeSearchConditionRequestDto condition, Pageable pageable) {
@@ -76,12 +79,12 @@ public class RecipeDetailFacade {
         return new PageImpl<>(updatedList, pageable, page.getTotalElements());
     }
 
-    public RecipeListResponseDto getRecommendListWithLikesResponseDto(Long userId, Pageable pageable) {
+    public RecipeListResponseDto getRecommendListWithLikesResponseDto(Pageable pageable) {
         Page<RecipeSummaryResponseDto> page = recipeService.getRecommendRecipeList(pageable);
-        return  getRecipeListWithLikesResponseDto(userId, page);
+        return  getRecipeListWithLikesResponseDto(page);
     }
 
-    private RecipeListResponseDto getRecipeListWithLikesResponseDto(Long userId, Page<RecipeSummaryResponseDto> page) {
+    private RecipeListResponseDto getRecipeListWithLikesResponseDto(Page<RecipeSummaryResponseDto> page) {
         List<Long> recipeIds = page.getContent().stream()
                 .map(RecipeSummaryResponseDto::getId)
                 .toList();
@@ -89,7 +92,6 @@ public class RecipeDetailFacade {
         // 3. 좋아요 상태 조회 (비페이징)
         LikeStatusListRequestDto requestDto = LikeStatusListRequestDto.builder()
                 .recipeIdList(recipeIds)
-                .userId(userId)
                 .build();
 
         RecipeLikeStatusListResponseDto response = likeFeignClient.getLikeStatusForRecipes(requestDto);

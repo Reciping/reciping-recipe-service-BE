@@ -160,8 +160,8 @@ public class RecipeService {
 
     public Page<RecipeSummaryResponseDto> getRecommendRecipeList(Pageable pageable) {
 
-        Long pageSize = (long) pageable.getPageSize();
         Long totalRecipeCount = recipeRepository.count();
+        Long pageSize = Math.min(totalRecipeCount, pageable.getPageSize());
 
         ChatGptRequestDto chatGptRequestDto = ChatGptRequestDto.builder().totalRecipeCount(totalRecipeCount).pickCount(pageSize).build();
 

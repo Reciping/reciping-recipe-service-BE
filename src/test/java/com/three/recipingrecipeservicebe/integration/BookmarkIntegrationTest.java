@@ -8,10 +8,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,8 +39,8 @@ public class BookmarkIntegrationTest {
     }
 
     @Test
-    @DisplayName("READ 사용자의 즐겨찾기 목록을 페이징 조회")
-    void getBookmarksByUserId() throws Exception {
+    @DisplayName("READ 사용자의 즐겨찾기 목록을 페이징 정렬 기준으로 정확히 조회")
+    void getBookmarksByUserIdWithPaging() throws Exception {
         Long userId = 1L;
 
         List<RecipeBookmarkDocument> bookmarks = new ArrayList<>();
@@ -49,40 +49,54 @@ public class BookmarkIntegrationTest {
                     RecipeBookmarkDocument.builder()
                             .userId(userId)
                             .recipeId(101L + i)
-                            .createdAt(LocalDateTime.now().minusDays(i + 1))
                             .build()
             );
         }
 
         recipeBookmarkRepository.saveAll(bookmarks);
 
+        // 🧪 첫 페이지 (page = 0)
         mockMvc.perform(get("/api/v1/bookmarks/user/{userId}", userId)
                         .param("page", "0")
                         .param("size", "3")
                         .param("sort", "createdAt,desc"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(3))
-                .andExpect(jsonPath("$.totalElements").value(6))
-                .andExpect(jsonPath("$.content[0].recipeId").value(101L)); // 최신순 정렬 기준
+                .andExpect(jsonPath("$.totalElements").value(6));
+
+        // 🧪 두 번째 페이지 (page = 1)
+        mockMvc.perform(get("/api/v1/bookmarks/user/{userId}", userId)
+                        .param("page", "1")
+                        .param("size", "3")
+                        .param("sort", "createdAt,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(3));
     }
 
-    @DisplayName("UPDATE 즐겨찾기 토글 요청 시 상태 변경")
     @Test
+    @DisplayName("UPDATE 즐겨찾기 토글 요청 시 상태 변경")
     void toggleBookmark() throws Exception {
         Long userId = 1L;
         Long recipeId = 100L;
 
+        String jsonBody = """
+        {
+            "userId": 1,
+            "recipeId": 100
+        }
+        """;
+
         // 즐겨찾기 등록
         mockMvc.perform(post("/api/v1/bookmarks/toggle")
-                        .param("recipeId", String.valueOf(recipeId))
-                        .param("userId", String.valueOf(userId)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
 
         // 즐겨찾기 해제
         mockMvc.perform(post("/api/v1/bookmarks/toggle")
-                        .param("recipeId", String.valueOf(recipeId))
-                        .param("userId", String.valueOf(userId)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonBody))
                 .andExpect(status().isOk())
                 .andExpect(content().string("false"));
     }

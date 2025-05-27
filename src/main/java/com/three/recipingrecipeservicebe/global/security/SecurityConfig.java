@@ -22,6 +22,7 @@ public class SecurityConfig {
         JwtOptionalFilter jwtOptionalFilter = new JwtOptionalFilter(jwtUtil);
 
         http
+//                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/v1/recipes/**").permitAll()

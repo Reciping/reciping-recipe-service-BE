@@ -47,6 +47,9 @@ public class RecipeBookmarkService {
     }
 
     public boolean isBookmarked(Long userId, Long recipeId) {
+        if (userId == null || recipeId == null) {
+            return false;
+        }
         return recipeBookmarkRepository.findByUserIdAndRecipeId(userId, recipeId).isPresent();
     }
 }
