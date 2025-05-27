@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.fileupload.FileUploadException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -39,6 +40,11 @@ public class GlobalExceptionHandler {
         return createResponse(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ExceptionDto> handleAccessDenied(AccessDeniedException e) {
+        return createResponse(HttpStatus.FORBIDDEN, "접근 권한이 없습니다");
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ExceptionDto> exception(final Exception e) {
         log.error("Exception: ", e);
@@ -50,7 +56,7 @@ public class GlobalExceptionHandler {
             final String message
     ) {
         return ResponseEntity
-                .status(HttpStatus.OK)
+                .status(status)
                 .body(new ExceptionDto(status, message));
     }
 
