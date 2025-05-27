@@ -12,7 +12,7 @@ public interface LikeFeignClient {
     @GetMapping("/api/v1/likes/recipe/{recipeId}/status")
     RecipeLikeStatusResponseDto getRecipeLikeStatus(
             @PathVariable("recipeId") Long recipeId,
-            @RequestParam("userId") Long userId
+            @RequestParam(value = "userId", required = false) Long userId
     );
 
     @PostMapping("/api/v1/likes/recipe/status-list")
