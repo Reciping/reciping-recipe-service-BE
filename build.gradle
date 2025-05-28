@@ -115,3 +115,7 @@ def querydslDir = layout.buildDirectory.dir("generated/querydsl").get().asFile
 sourceSets {
     main.java.srcDirs += querydslDir
 }
+
+bootJar {
+    archiveFileName = 'reciping-recipe-service.jar'
+}

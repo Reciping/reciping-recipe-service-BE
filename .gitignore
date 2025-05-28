@@ -37,4 +37,4 @@ out/
 .vscode/
 
 /**/src/main/resources/application.properties
-**/logback-spring.xml
+/**/src/main/resources/application-dev.properties
