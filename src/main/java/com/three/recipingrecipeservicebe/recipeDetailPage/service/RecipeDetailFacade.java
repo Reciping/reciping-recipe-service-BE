@@ -2,14 +2,15 @@ package com.three.recipingrecipeservicebe.recipeDetailPage.service;
 
 import com.three.recipingrecipeservicebe.bookmark.service.RecipeBookmarkService;
 import com.three.recipingrecipeservicebe.global.security.UserDetailsImpl;
+import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeListResponseDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeSearchConditionRequestDto;
 import com.three.recipingrecipeservicebe.recipe.dto.RecipeSummaryResponseDto;
-import com.three.recipingrecipeservicebe.recipe.dto.RecipeDetailResponseDto;
 import com.three.recipingrecipeservicebe.recipe.service.RecipeService;
 import com.three.recipingrecipeservicebe.recipeDetailPage.dto.*;
 import com.three.recipingrecipeservicebe.recipeDetailPage.feign.CommentFeignClient;
 import com.three.recipingrecipeservicebe.recipeDetailPage.feign.LikeFeignClient;
+import com.three.recipingrecipeservicebe.recipeDetailPage.feign.UserFeignClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -27,6 +28,7 @@ public class RecipeDetailFacade {
     private final RecipeBookmarkService recipeBookmarkService;
     private final CommentFeignClient commentFeignClient;
     private final LikeFeignClient likeFeignClient;
+    private final UserFeignClient userFeignClient;
 
     public RecipeDetailAggregateDto getRecipeDetail(UserDetailsImpl userDetails, Long recipeId, Pageable pageable) {
         Long userId = (userDetails != null) ? userDetails.getUserId() : null;
@@ -81,6 +83,12 @@ public class RecipeDetailFacade {
 
     public RecipeListResponseDto getRecommendListWithLikesResponseDto(Pageable pageable) {
         Page<RecipeSummaryResponseDto> page = recipeService.getRecommendRecipeList(pageable);
+        return  getRecipeListWithLikesResponseDto(page);
+    }
+
+    public RecipeListResponseDto getMlRecommendListWithLikesResponseDto(Long userId, Pageable pageable) {
+
+        Page<RecipeSummaryResponseDto> page = recipeService.getMlRecommendRecipeList(userId, pageable);
         return  getRecipeListWithLikesResponseDto(page);
     }
 
