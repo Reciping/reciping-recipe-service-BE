@@ -10,8 +10,12 @@ import com.three.recipingrecipeservicebe.recipe.dto.*;
 import com.three.recipingrecipeservicebe.recipe.entity.*;
 import com.three.recipingrecipeservicebe.recipe.infrastructure.s3.S3Uploader;
 import com.three.recipingrecipeservicebe.recipe.repository.RecipeRepository;
+import com.three.recipingrecipeservicebe.recipeDetailPage.dto.UserInfoDto;
+import com.three.recipingrecipeservicebe.recipeDetailPage.feign.UserFeignClient;
 import com.three.recipingrecipeservicebe.recommendation.dto.ChatGptRequestDto;
+import com.three.recipingrecipeservicebe.recommendation.dto.RecommendRequestDto;
 import com.three.recipingrecipeservicebe.recommendation.service.OpenAiRecommendService;
+import com.three.recipingrecipeservicebe.recommendation.service.RecommendService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,6 +41,8 @@ public class RecipeService {
     private final HashTagService hashTagService;
     private final RecipeBookmarkService recipeBookmarkService;
     private final OpenAiRecommendService openAiRecommendService;
+    private final RecommendService recommendService;
+    private final UserFeignClient userFeignClient;
 
     private final RecipeMapper recipeMapper;
     private final S3Uploader s3Uploader;
@@ -191,6 +197,45 @@ public class RecipeService {
 
         // 6. PageImpl로 래핑
         return new PageImpl<>(mapped, pageable, totalRecipeCount);
+    }
+
+    public Page<RecipeSummaryResponseDto> getMlRecommendRecipeList(Long userId, Pageable pageable) {
+
+        UserInfoDto userInfoDto = userFeignClient.getUserInfo(userId);
+
+        RecommendRequestDto recommendRequestDto = RecommendRequestDto.builder()
+                .userId(userId)
+                .sexEnum(userInfoDto.getSex().name())
+                .ageEnum(userInfoDto.getAge().name())
+                .build();
+
+
+        List<Long> recipeIds = recommendService.getRecommendations(recommendRequestDto);
+
+        if (recipeIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        // 2. 레시피 조회
+        Page<Recipe> recipes = recipeRepository.findByIdInAndIsDeletedFalse(recipeIds, pageable);
+
+        // 3. ID 기준 Map 생성
+        Map<Long, Recipe> recipeMap = recipes.stream()
+                .collect(Collectors.toMap(Recipe::getId, Function.identity()));
+
+        // 4. GPT 응답 순서대로 정렬
+        List<Recipe> orderedRecipes = recipeIds.stream()
+                .map(recipeMap::get)
+                .filter(Objects::nonNull)
+                .toList();
+
+        // 5. DTO 매핑
+        List<RecipeSummaryResponseDto> mapped = orderedRecipes.stream()
+                .map(recipeMapper::toMyRecipeSummaryDto)
+                .toList();
+
+        // 6. PageImpl로 래핑
+        return new PageImpl<>(mapped, pageable, pageable.getPageSize());
     }
 
     public Map<String, List<Map<String, String>>> getAllCategoryOptions() {

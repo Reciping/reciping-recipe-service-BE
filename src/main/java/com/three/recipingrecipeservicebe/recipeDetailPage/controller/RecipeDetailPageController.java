@@ -84,12 +84,21 @@ public class RecipeDetailPageController {
         return ResponseEntity.ok(results);
     }
 
-    @GetMapping("/recommend")
+    @GetMapping("/gpt-recommend")
     public ResponseEntity<RecipeListResponseDto> getRecommendedRecipes(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             Pageable pageable
     ) {
         RecipeListResponseDto results = recipeDetailFacade.getRecommendListWithLikesResponseDto(pageable);
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/recommend")
+    public ResponseEntity<RecipeListResponseDto> getMlRecommendedRecipes(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            Pageable pageable
+    ) {
+        RecipeListResponseDto results = recipeDetailFacade.getMlRecommendListWithLikesResponseDto(userDetails.getUserId(), pageable);
         return ResponseEntity.ok(results);
     }
 }
