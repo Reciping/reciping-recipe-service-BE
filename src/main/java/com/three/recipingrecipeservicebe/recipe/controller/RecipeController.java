@@ -32,18 +32,48 @@ public class RecipeController {
 
     private final RecipeService recipeService;
     private static final Logger logger = LoggerFactory.getLogger(RecipeController.class);
+    private static final Logger errorLogger = LoggerFactory.getLogger("ERROR_LOGGER");
 
     @GetMapping
-    public ResponseEntity<Page<RecipeSummaryResponseDto>> getRecipeListByPage(Pageable pageable) {
-        Page<RecipeSummaryResponseDto> response = recipeService.getRecipeListByPage(pageable);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Page<RecipeSummaryResponseDto>> getRecipeListByPage(Pageable pageable, HttpServletRequest request) {
+        try {
+            Page<RecipeSummaryResponseDto> response = recipeService.getRecipeListByPage(pageable);
+
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW,
+                    "recipe_list",
+                    "Pageable: " + pageable.toString(),
+                    request
+            );
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            errorLogger.error("Error in RecipeController.getRecipeListByPage(): {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/count")
-    public ResponseEntity<Response<RecipeCountResponseDto>> getMyRecipeCount(
-            @RequestHeader("X-USER-ID") Long userId) {
-        RecipeCountResponseDto response = recipeService.getMyRecipeCount(userId);
-        return ResponseEntity.ok(Response.ok(response));
+    public ResponseEntity<Response<RecipeCountResponseDto>> getMyRecipeCount(@AuthenticationPrincipal UserDetailsImpl userDetails, HttpServletRequest request) {
+        try {
+            Long userId = userDetails.getUserId();
+            RecipeCountResponseDto response = recipeService.getMyRecipeCount(userId);
+
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW,
+                    String.valueOf(userId), // targetId: user whose recipe count is fetched
+                    "my_recipe_count",
+                    request
+            );
+
+            return ResponseEntity.ok(Response.ok(response));
+        } catch (Exception e) {
+            Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+            errorLogger.error("Error in RecipeController.getMyRecipeCount() for userId {}: {}", userId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @PostMapping
@@ -53,33 +83,34 @@ public class RecipeController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             HttpServletRequest request
     ) {
-        RecipeCreatedResponseDto response = recipeService.createRecipe(requestDto, userDetails.getUserId(), file);
+        RecipeCreatedResponseDto response = null;
+        try {
+            response = recipeService.createRecipe(requestDto, userDetails.getUserId(), file);
 
-        CustomLogger.track(
-                logger,
-                LogType.RECIPE_CREATE,
-                "/api/v1/recipes/" + response.getId(),
-                "POST",
-                String.valueOf(userDetails.getUserId()),
-                null,
-                String.valueOf(response.getId()),
-                JsonStringifier.toJsonString(requestDto),
-                request
-        );
+            CustomLogger.track(
+                    logger,
+                    LogType.RECIPE_CREATE,
+                    String.valueOf(response.getId()), // targetId: created recipe ID
+                    JsonStringifier.toJsonString(requestDto), // payload: request DTO
+                    request
+            );
 
-        CustomLogger.track(
-                logger,
-                LogType.TAGS,
-                "/api/v1/recipes/" + response.getId(),
-                "POST",
-                String.valueOf(userDetails.getUserId()),
-                null,
-                String.valueOf(response.getId()),
-                JsonStringifier.toJsonString(requestDto.getTags()),
-                request
-        );
+            if (requestDto.getTags() != null && !requestDto.getTags().isEmpty()) {
+                CustomLogger.track(
+                        logger,
+                        LogType.TAGS,
+                        String.valueOf(response.getId()), // targetId: created recipe ID
+                        JsonStringifier.toJsonString(requestDto.getTags()), // payload: tags
+                        request
+                );
+            }
 
-        return ResponseEntity.ok(Response.ok(response));
+            return ResponseEntity.ok(Response.ok(response));
+        } catch (Exception e) {
+            Long recipeId = (response != null) ? response.getId() : null;
+            errorLogger.error("Error in RecipeController.createRecipe() for recipeId {}: {}", recipeId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @PutMapping("/{id}")
@@ -90,46 +121,73 @@ public class RecipeController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             HttpServletRequest request
     ) {
-        recipeService.updateRecipe(id, requestDto, userDetails.getUserId(), file);
+        try {
+            recipeService.updateRecipe(id, requestDto, userDetails.getUserId(), file);
 
-        CustomLogger.track(
-                logger,
-                LogType.RECIPE_UPDATE,
-                "/api/v1/recipes/" + id,
-                "PUT",
-                String.valueOf(userDetails.getUserId()),
-                null,
-                String.valueOf(id),
-                JsonStringifier.toJsonString(requestDto),
-                request
-        );
+            CustomLogger.track(
+                    logger,
+                    LogType.RECIPE_UPDATE,
+                    String.valueOf(id), // targetId: updated recipe ID
+                    JsonStringifier.toJsonString(requestDto), // payload: request DTO
+                    request
+            );
 
-        CustomLogger.track(
-                logger,
-                LogType.TAGS,
-                "/api/v1/recipes/" + id,
-                "PUT",
-                String.valueOf(userDetails.getUserId()),
-                null,
-                String.valueOf(id),
-                JsonStringifier.toJsonString(requestDto.getTags()),
-                request
-        );
+            if (requestDto.getTags() != null && !requestDto.getTags().isEmpty()) {
+                CustomLogger.track(
+                        logger,
+                        LogType.TAGS,
+                        String.valueOf(id), // targetId: updated recipe ID
+                        JsonStringifier.toJsonString(requestDto.getTags()), // payload: tags
+                        request
+                );
+            }
 
-        return ResponseEntity.noContent().build();
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            errorLogger.error("Error in RecipeController.updateRecipe() for recipeId {}: {}", id, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Long> deleteRecipe(
             @PathVariable Long id,
-            @AuthenticationPrincipal UserDetailsImpl userDetails
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            HttpServletRequest request
     ) {
-        recipeService.deleteRecipe(id, userDetails.getUserId());
-        return ResponseEntity.noContent().build();
+        try {
+            recipeService.deleteRecipe(id, userDetails.getUserId());
+
+            CustomLogger.track(
+                    logger,
+                    LogType.RECIPE_DELETE, // Assuming LogType.RECIPE_DELETE exists
+                    String.valueOf(id),   // targetId: deleted recipe ID
+                    "User: " + userDetails.getUserId(), // payload: user performing delete
+                    request
+            );
+
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            errorLogger.error("Error in RecipeController.deleteRecipe() for recipeId {}: {}", id, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/category-options")
-    public ResponseEntity<Map<String, List<Map<String, String>>>> getAllCategoryOptions() {
-        return ResponseEntity.ok(recipeService.getAllCategoryOptions());
+    public ResponseEntity<Map<String, List<Map<String, String>>>> getAllCategoryOptions(HttpServletRequest request) {
+        try {
+            Map<String, List<Map<String, String>>> categoryOptions = recipeService.getAllCategoryOptions();
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW,
+                    "category_options",
+                    "Fetched all category options",
+                    request
+            );
+            return ResponseEntity.ok(categoryOptions);
+        } catch (Exception e) {
+            errorLogger.error("Error in RecipeController.getAllCategoryOptions(): {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }

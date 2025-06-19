@@ -14,5 +14,8 @@ public enum LogType {
     LOGIN,
     EXIT_INTENT,
     RECIPE_CREATE,
-    RECIPE_UPDATE
+    RECIPE_UPDATE,
+    RECIPE_DELETE,
+    SEARCH,
+    INFO
 }

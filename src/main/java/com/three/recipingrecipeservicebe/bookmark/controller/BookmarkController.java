@@ -21,14 +21,30 @@ public class BookmarkController {
 
     private final RecipeBookmarkService recipeBookmarkService;
     private static final Logger logger = LoggerFactory.getLogger(BookmarkController.class);
+    private static final Logger errorLogger = LoggerFactory.getLogger("ERROR_LOGGER");
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<Page<BookmarkResponseDto>> getBookmarksByUser(
             @PathVariable Long userId,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) {
-        Page<BookmarkResponseDto> recipeBookmarks = recipeBookmarkService.getBookmarksByUserId(userId, pageable);
-        return ResponseEntity.ok(recipeBookmarks);
+        try {
+            Page<BookmarkResponseDto> recipeBookmarks = recipeBookmarkService.getBookmarksByUserId(userId, pageable);
+
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW,
+                    String.valueOf(userId), // targetId: The user whose bookmarks are being viewed
+                    "Pageable: " + pageable.toString(), // payload: Pagination info
+                    request
+            );
+
+            return ResponseEntity.ok(recipeBookmarks);
+        } catch (Exception e) {
+            errorLogger.error("Error in BookmarkController.getBookmarksByUser() for userId {}: {}", userId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @PostMapping("/toggle")
@@ -36,20 +52,22 @@ public class BookmarkController {
             @RequestBody BookmarkRequestDto bookmarkRequestDto,
             HttpServletRequest request
     ) {
-        boolean isBookmarked = recipeBookmarkService.toggleBookmark(bookmarkRequestDto);
+        try {
+            boolean isBookmarked = recipeBookmarkService.toggleBookmark(bookmarkRequestDto);
 
-        CustomLogger.track(
-                logger,
-                LogType.VIEW,
-                "/api/v1/bookmarks/" + bookmarkRequestDto.getRecipeId(),
-                "GET",
-                String.valueOf(bookmarkRequestDto.getUserId()),
-                null,
-                null,
-                String.valueOf(isBookmarked),
-                request
-        );
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW, // Or a more specific LogType.BOOKMARK_ACTION if available
+                    String.valueOf(bookmarkRequestDto.getUserId()),
+                    "{ \"recipeId\": \"" + bookmarkRequestDto.getRecipeId() + "\", \"isBookmarked\": " + isBookmarked + " }",
+                    request
+            );
 
-        return ResponseEntity.ok(isBookmarked);
+            return ResponseEntity.ok(isBookmarked);
+        } catch (Exception e) {
+            errorLogger.error("Error in BookmarkController.toggleBookmark() for userId {} and recipeId {}: {}",
+                    bookmarkRequestDto.getUserId(), bookmarkRequestDto.getRecipeId(), e.getMessage(), e);
+            throw e;
+        }
     }
 }

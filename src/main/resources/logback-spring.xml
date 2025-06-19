@@ -2,37 +2,32 @@
 <configuration scan="true">
 
     <!-- 절대 경로 설정 -->
-    <property name="LOG_PATH" value="/var/log/reciping/recipe-service"/> <!-- 디렉토리 경로 -> 여기에 로그가 저장 -->
-    <property name="LOG_FILE" value="recipe-service-app"/>  <!-- 로그 파일의 이름 -> 나중에 /var/log/reciping/user-service/user-service-app.log로 치환됨 -->
+    <property name="LOG_PATH" value="${LOG_PATH:-/var/log/reciping/recipe-service}"/> <!-- 디렉토리 경로 -> 여기에 로그가 저장 -->
+    <property name="LOG_FILE" value="recipe-service-app"/>  <!-- 로그 파일의 이름 -->
 
-    <!-- 콘솔 로그 Appender -->
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <!-- 파일 기반 Appender(=파일에 로그를 기록) : 로그를 어디에 출력할지 설정하는 부분 -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/${LOG_FILE}.log</file> <!-- 출력 예시) /var/log/reciping/user-service/user-service-app.log -->
-
+    <!-- CSV 파일 Appender (DB용) -->
+    <appender name="CSV_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${LOG_FILE}.csv</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>14</maxHistory>
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE}.%d{yyyy-MM-dd}.csv</fileNamePattern>
+            <maxHistory>14</maxHistory> <!-- 기본 보존 기간 -->
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
-            <immediateFlush>true</immediateFlush> <!-- 로그를 버퍼에 모았다가 쓰지 않고, 매번 바로 디스크에 flush(쓰기 완료)하겠다는 뜻 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}\t%level\t%thread\t%logger{36}\t%msg\t%X{traceId}%n</pattern>
         </encoder>
     </appender>
 
-    <!-- 커스텀 파일 로그 기반 Appender(MyPageController 에 대한 커스텀 파일 로그 기록) -->
+    <!-- JSON 콘솔 Appender (Fluent Bit용) -->
+    <appender name="JSON_STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+    </appender>
+
+    <!-- Controller-specific File Appenders (.log format) -->
     <appender name="BOOKMARK_CONTROLLER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/BookmarkController.log</file>
-
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/BookmarkController.%d{yyyy-MM-dd}.log</fileNamePattern> // 분 단위로 로그 파일 분리 저장
-            <maxHistory>14</maxHistory> <!-- "애플리케이션 서버 로컬 디스크 수준"의 보존 정책입니다. 디스크 보호를 위해 14일 후에 지운다는 뜻입니다. (겟마이페이지 : 14~30일 / 겟마이북마크 : 14일) -->
+            <fileNamePattern>${LOG_PATH}/BookmarkController.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>14</maxHistory> <!-- 기존 설정 유지: 겟마이북마크 : 14일 -->
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
@@ -40,22 +35,11 @@
         </encoder>
     </appender>
 
-    <appender name="BOOKMARK_CONTROLLER_JSON_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/BookmarkController.json</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/BookmarkController.%d{yyyy-MM-dd}.json</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-    </appender>
-
-    <!-- 커스텀 파일 로그 기반 Appender(UserController 에 대한 커스텀 파일 로그 기록) -->
     <appender name="RECIPE_CONTROLLER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/RecipeController.log</file>
-
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_PATH}/RecipeController.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory> <!-- 사인업 : 30일 이상 / 겟마이 프로필 : 14일 / 업데이트마이프로필 : 14일 / 나머지 : 7일 -->
+            <maxHistory>30</maxHistory> <!-- 기존 설정 유지 -->
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
@@ -63,22 +47,11 @@
         </encoder>
     </appender>
 
-    <appender name="RECIPE_CONTROLLER_JSON_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/RecipeController.json</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/RecipeController.%d{yyyy-MM-dd}.json</fileNamePattern>
-            <maxHistory>30</maxHistory>
-        </rollingPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-    </appender>
-
-    <!-- 커스텀 파일 로그 기반 Appender(UserController 에 대한 커스텀 파일 로그 기록) -->
     <appender name="RECIPE_DETAIL_PAGE_CONTROLLER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/RecipeDetailPageController.log</file>
-
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_PATH}/RecipeDetailPageController.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <maxHistory>30</maxHistory> <!-- 사인업 : 30일 이상 / 겟마이 프로필 : 14일 / 업데이트마이프로필 : 14일 / 나머지 : 7일 -->
+            <maxHistory>30</maxHistory> <!-- 기존 설정 유지 -->
         </rollingPolicy>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
@@ -86,55 +59,117 @@
         </encoder>
     </appender>
 
-    <appender name="RECIPE_DETAIL_PAGE_CONTROLLER_JSON_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/RecipeDetailPageController.json</file>
+    <appender name="MAIN_PAGE_CONTROLLER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/MainPageController.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/RecipeDetailPageController.%d{yyyy-MM-dd}.json</fileNamePattern>
-            <maxHistory>30</maxHistory>
+            <fileNamePattern>${LOG_PATH}/MainPageController.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory> <!-- 예시 LikeController와 유사하게 30일 설정 -->
         </rollingPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
+            <immediateFlush>true</immediateFlush>
+        </encoder>
     </appender>
 
-    <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_PATH}/${LOG_FILE}.json</file>
+    <appender name="OPEN_AI_CONTROLLER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/OpenAiController.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_PATH}/${LOG_FILE}.%d{yyyy-MM-dd}.json</fileNamePattern>
-            <maxHistory>14</maxHistory>
+            <fileNamePattern>${LOG_PATH}/OpenAiController.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory> <!-- 예시 LikeController와 유사하게 30일 설정 -->
         </rollingPolicy>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
+            <immediateFlush>true</immediateFlush>
+        </encoder>
     </appender>
 
+    <appender name="SEARCH_CONTROLLER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/SearchController.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/SearchController.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory> <!-- 예시 LikeController와 유사하게 30일 설정 -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
+            <immediateFlush>true</immediateFlush>
+        </encoder>
+    </appender>
+
+    <appender name="RECOMMEND_CONTROLLER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/RecommendController.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/RecommendController.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory> <!-- 예시 LikeController와 유사하게 30일 설정 -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
+            <immediateFlush>true</immediateFlush>
+        </encoder>
+    </appender>
+
+    <appender name="HASH_TAG_CONTROLLER_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/HashTagController.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/HashTagController.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory> <!-- 예시 LikeController와 유사하게 30일 설정 -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId}] %logger{36} - %msg%n</pattern>
+            <immediateFlush>true</immediateFlush>
+        </encoder>
+    </appender>
 
     <!-- 루트 로거 -->
     <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-        <appender-ref ref="JSON_FILE"/>
+        <appender-ref ref="CONSOLE"/>         <!-- 콘솔 로그 추가 (개발/디버깅 시 유용) -->
+        <appender-ref ref="CSV_FILE"/>        <!-- CSV 로그 (DB용) -->
+        <appender-ref ref="JSON_STDOUT"/>     <!-- JSON 로그 (Fluent Bit용) -->
     </root>
 
-    <!-- BookmarkController 클래스에 대한 로거 -->
-    <logger level="INFO"
-            name="com.three.recipingrecipeservicebe.bookmark.controller.BookmarkController"
-            additivity="false"> <!-- (additivity 는 상위 패키지 로그 전파 여부)-->
+    <logger name="ERROR_LOGGER" level="ERROR" additivity="false">
+        <appender-ref ref="CSV_FILE"/>
+        <appender-ref ref="JSON_STDOUT"/>
+    </logger>
+
+    <!-- Controller-specific Loggers -->
+    <logger level="INFO" name="com.three.recipingrecipeservicebe.bookmark.controller.BookmarkController" additivity="false">
         <appender-ref ref="BOOKMARK_CONTROLLER_LOG" />
-        <appender-ref ref="BOOKMARK_CONTROLLER_JSON_LOG" />
+        <appender-ref ref="JSON_STDOUT" />
     </logger>
 
-    <!-- RecipeController 클래스에 대한 로거 -->
-    <logger level="INFO"
-            name="com.three.recipingrecipeservicebe.bookmark.controller.RecipeController"
-            additivity="false"> <!-- (additivity 는 상위 패키지 로그 전파 여부)-->
+    <logger level="INFO" name="com.three.recipingrecipeservicebe.recipe.controller.RecipeController" additivity="false">
         <appender-ref ref="RECIPE_CONTROLLER_LOG" />
-        <appender-ref ref="RECIPE_CONTROLLER_JSON_LOG" />
+        <appender-ref ref="JSON_STDOUT" />
     </logger>
 
-    <!-- RecipeDetailPageController 클래스에 대한 로거 -->
-    <logger level="INFO"
-            name="com.three.recipingrecipeservicebe.bookmark.controller.RecipeDetailPageController"
-            additivity="false"> <!-- (additivity 는 상위 패키지 로그 전파 여부)-->
+    <logger level="INFO" name="com.three.recipingrecipeservicebe.recipeDetailPage.controller.RecipeDetailPageController" additivity="false">
         <appender-ref ref="RECIPE_DETAIL_PAGE_CONTROLLER_LOG" />
-        <appender-ref ref="RECIPE_DETAIL_PAGE_CONTROLLER_JSON_LOG" />
+        <appender-ref ref="JSON_STDOUT" />
     </logger>
 
+    <logger level="INFO" name="com.three.recipingrecipeservicebe.mainPage.controller.MainPageController" additivity="false">
+        <appender-ref ref="MAIN_PAGE_CONTROLLER_LOG" />
+        <appender-ref ref="JSON_STDOUT" />
+    </logger>
+
+    <logger level="INFO" name="com.three.recipingrecipeservicebe.recommendation.controller.OpenAiController" additivity="false">
+        <appender-ref ref="OPEN_AI_CONTROLLER_LOG" />
+        <appender-ref ref="JSON_STDOUT" />
+    </logger>
+
+    <logger level="INFO" name="com.three.recipingrecipeservicebe.search.controller.SearchController" additivity="false">
+        <appender-ref ref="SEARCH_CONTROLLER_LOG" />
+        <appender-ref ref="JSON_STDOUT" />
+    </logger>
+
+    <logger level="INFO" name="com.three.recipingrecipeservicebe.recommendation.controller.RecommendController" additivity="false">
+        <appender-ref ref="RECOMMEND_CONTROLLER_LOG" />
+        <appender-ref ref="JSON_STDOUT" />
+    </logger>
+
+    <logger level="INFO" name="com.three.recipingrecipeservicebe.hashtag.controller.HashTagController" additivity="false">
+        <appender-ref ref="HASH_TAG_CONTROLLER_LOG" />
+        <appender-ref ref="JSON_STDOUT" />
+    </logger>
 
 </configuration>

@@ -20,85 +20,145 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/recipes")
+@RequestMapping("/api/v1/recipes") // Note: This controller shares /api/v1/recipes with RecipeController
 @RequiredArgsConstructor
 public class RecipeDetailPageController {
 
     private final RecipeDetailFacade recipeDetailFacade;
     private static final Logger logger = LoggerFactory.getLogger(RecipeDetailPageController.class);
+    private static final Logger errorLogger = LoggerFactory.getLogger("ERROR_LOGGER");
 
     @GetMapping("/{recipeId}")
     public ResponseEntity<RecipeDetailAggregateDto> getRecipeDetail(
             @PathVariable Long recipeId,
-            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @AuthenticationPrincipal UserDetailsImpl userDetails, // Can be null
             Pageable pageable,
             HttpServletRequest request
     ) {
-        RecipeDetailAggregateDto response = recipeDetailFacade.getRecipeDetail(userDetails, recipeId, pageable);
+        try {
+            RecipeDetailAggregateDto response = recipeDetailFacade.getRecipeDetail(userDetails, recipeId, pageable);
 
-        CustomLogger.track(
-                logger,
-                LogType.VIEW,
-                "/api/v1/recipes/" + recipeId,
-                "GET",
-                (userDetails != null) ? String.valueOf(userDetails.getUserId()) : null,
-                null,
-                null,
-                JsonStringifier.toJsonString(response),
-                request
-        );
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW,
+                    String.valueOf(recipeId), // targetId: recipeId being viewed
+                    "{ \"pageable\": \"" + pageable.toString() + "\" }",
+                    request
+            );
 
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            errorLogger.error("Error in RecipeDetailPageController.getRecipeDetail() for recipeId {}: {}", recipeId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/default")
-    public ResponseEntity<Page<RecipeSummaryResponseDto>> getDefaultRecipeListWithLikes(Pageable pageable) {
-        Page<RecipeSummaryResponseDto> result = recipeDetailFacade.getDefaultRecipeListWithLikes(pageable);
-        return ResponseEntity.ok(result);
+    public ResponseEntity<Page<RecipeSummaryResponseDto>> getDefaultRecipeListWithLikes(Pageable pageable, HttpServletRequest request) {
+        try {
+            Page<RecipeSummaryResponseDto> result = recipeDetailFacade.getDefaultRecipeListWithLikes(pageable);
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW,
+                    "default_recipe_list",
+                    "Pageable: " + pageable.toString(),
+                    request
+            );
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            errorLogger.error("Error in RecipeDetailPageController.getDefaultRecipeListWithLikes(): {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/myRecipes")
     public ResponseEntity<RecipeListResponseDto> getMyRecipesWithLikes(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) {
-        RecipeListResponseDto response = recipeDetailFacade.getMyRecipesWithLikes(userDetails.getUserId(), pageable);
-        return ResponseEntity.ok(response);
+        try {
+            RecipeListResponseDto response = recipeDetailFacade.getMyRecipesWithLikes(userDetails.getUserId(), pageable);
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW,
+                    String.valueOf(userDetails.getUserId()), // targetId: user viewing their recipes
+                    "my_recipes_with_likes, Pageable: " + pageable.toString(),
+                    request
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+            errorLogger.error("Error in RecipeDetailPageController.getMyRecipesWithLikes() for userId {}: {}", userId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/bookmarked")
     public ResponseEntity<RecipeListResponseDto> getBookmarkedRecipesWithLikes(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) {
-        RecipeListResponseDto response = recipeDetailFacade.getBookmarkedRecipesWithLikes(userDetails.getUserId(), pageable);
-        return ResponseEntity.ok(response);
+        try {
+            RecipeListResponseDto response = recipeDetailFacade.getBookmarkedRecipesWithLikes(userDetails.getUserId(), pageable);
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW,
+                    String.valueOf(userDetails.getUserId()), // targetId: user viewing their bookmarked recipes
+                    "bookmarked_recipes_with_likes, Pageable: " + pageable.toString(),
+                    request
+            );
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Long userId = (userDetails != null) ? userDetails.getUserId() : null;
+            errorLogger.error("Error in RecipeDetailPageController.getBookmarkedRecipesWithLikes() for userId {}: {}", userId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     @PostMapping("/search/category")
     public ResponseEntity<Page<RecipeSummaryResponseDto>> searchRecipes(
             @RequestBody RecipeSearchConditionRequestDto condition,
-            Pageable pageable
+            Pageable pageable,
+            HttpServletRequest request
     ) {
-        Page<RecipeSummaryResponseDto> results = recipeDetailFacade.searchRecipesWithLikes(condition, pageable);
-        return ResponseEntity.ok(results);
-    }
-
-    @GetMapping("/gpt-recommend")
-    public ResponseEntity<RecipeListResponseDto> getRecommendedRecipes(
-            @AuthenticationPrincipal UserDetailsImpl userDetails,
-            Pageable pageable
-    ) {
-        RecipeListResponseDto results = recipeDetailFacade.getRecommendListWithLikesResponseDto(pageable);
-        return ResponseEntity.ok(results);
+        try {
+            Page<RecipeSummaryResponseDto> results = recipeDetailFacade.searchRecipesWithLikes(condition, pageable);
+            CustomLogger.track(
+                    logger,
+                    LogType.SEARCH,
+                    "category_search",
+                    "{ \"condition\": " + JsonStringifier.toJsonString(condition) + ", \"pageable\": \"" + pageable.toString() + "\" }",
+                    request
+            );
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            errorLogger.error("Error in RecipeDetailPageController.searchRecipes(): {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     @GetMapping("/recommend")
-    public ResponseEntity<RecipeListResponseDto> getMlRecommendedRecipes(
-            @AuthenticationPrincipal UserDetailsImpl userDetails,
-            Pageable pageable
+    public ResponseEntity<RecipeListResponseDto> getRecommendedRecipes(
+            @AuthenticationPrincipal UserDetailsImpl userDetails, // Can be null
+            Pageable pageable,
+            HttpServletRequest request
     ) {
-        RecipeListResponseDto results = recipeDetailFacade.getMlRecommendListWithLikesResponseDto(userDetails.getUserId(), pageable);
-        return ResponseEntity.ok(results);
+        try {
+            RecipeListResponseDto results = recipeDetailFacade.getRecommendListWithLikesResponseDto(pageable);
+            String targetUser = (userDetails != null) ? String.valueOf(userDetails.getUserId()) : "anonymous";
+            CustomLogger.track(
+                    logger,
+                    LogType.VIEW, // Or LogType.RECOMMENDATION_VIEW
+                    targetUser,   // targetId: user for whom recommendations are (or general if anonymous)
+                    "recommended_recipes, Pageable: " + pageable.toString(),
+                    request
+            );
+            return ResponseEntity.ok(results);
+        } catch (Exception e) {
+            errorLogger.error("Error in RecipeDetailPageController.getRecommendedRecipes(): {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }
