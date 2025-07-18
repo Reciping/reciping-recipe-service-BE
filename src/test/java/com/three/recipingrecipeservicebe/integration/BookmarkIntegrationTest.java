@@ -23,7 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
         "spring.data.mongodb.uri=mongodb://localhost:27017/recipe_bookmark"
-//        "spring.data.mongodb.uri=mongodb://mongoadmin:mongo123@172.16.24.34:27017/reciping_like_service?authSource=admin"
 })
 public class BookmarkIntegrationTest {
 
