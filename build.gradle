@@ -96,6 +96,19 @@ dependencies {
     // kafka
     implementation 'org.springframework.kafka:spring-kafka'
 
+    // Testcontainers BOM으로 버전 통합
+    testImplementation platform('org.testcontainers:testcontainers-bom:1.19.7')
+
+    // JUnit5 기반 Testcontainers 사용
+    testImplementation 'org.testcontainers:junit-jupiter'
+
+    // MongoDB 컨테이너
+    testImplementation 'org.testcontainers:mongodb'
+
+    // Spring Boot 통합 테스트용
+    testImplementation 'org.springframework.boot:spring-boot-test'
+    testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
+
 }
 
 tasks.withType(Test).configureEach {
