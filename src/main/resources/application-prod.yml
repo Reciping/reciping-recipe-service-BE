@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: reciping-recipe-service-BE
+  datasource:
+    url: jdbc:postgresql://reciping-rdb.c7wokrloy1td.ap-northeast-2.rds.amazonaws.com:15432/recipe_service_db
+    username: postgres
+    password: changeme
+    driver-class-name: org.postgresql.Driver
+  data:
+    mongodb:
+      uri: mongodb://recipingadmin:changeme@reciping-nosql.cluster-c7wokrloy1td.ap-northeast-2.docdb.amazonaws.com:37017/recipe_hashtag
+  jackson:
+    serialization:
+      indent_output: true
+  kafka:
+    bootstrap-servers: 10.0.128.81:9092,10.0.129.35:9092,10.0.130.61:9092
+
+jwt:
+  secret:
+    key: ${JWT_SECRET_KEY}
+
+cloud:
+  aws:
+    s3:
+      bucket: reciping-be
+    region:
+      static: ap-northeast-2
+    credentials:
+      access-key: ${AWS_ACCESS_KEY_ID}
+      secret-key: ${AWS_SECRET_ACCESS_KEY}
+
+openai:
+  api-url: /v1/chat/completions
+  api-key: ${OPENAI_API_KEY}
+
+feign:
+  client:
+    config:
+      recipe-service:
+        url: http://reciping-recipe-service:8081
+      like-service:
+        url: http://reciping-like-service:8082
+      event-service:
+        url: http://reciping-event-service:8083
+      search-service:
+        url: http://reciping-search-service:8084
+      ad-service:
+        url: http://reciping-ads-service:8085
+      comment-service:
+        url: http://reciping-comment-service:8086
+      recommend-service:
+        url: http://reciping-recommendation-service:8087
+      tracking-service:
+        url: http://reciping-logging-service:8088
+
